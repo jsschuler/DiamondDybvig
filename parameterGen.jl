@@ -23,6 +23,9 @@ initSize=100
 initRun=10
 sampSize=initSize*initRun
 agtCnts=10:10:100
+
+# We have a unit 3-cube that we must fill with 
+
 payOut=Array(.05:.05:.5)
 premium=Array(.05:.05:.5)
 exogP=Array(.05:.05:.25)
