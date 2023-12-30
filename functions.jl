@@ -26,7 +26,7 @@ function agtGen(endow::Int64,riskAversion::Float64,p::Float64)
               prob=[p]
               )
               #println(typeof(key))
-              CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
+              #CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
 
 
 end
@@ -275,7 +275,7 @@ function withdraw(agt::Agent,exog::Bool)
               exogW=[exog],
               Failure=[retVal]
               )
-              CSV.write("Data6/withdrawals"*key*".csv", df,header = false,append=true)
+              #CSV.write("Data6/withdrawals"*key*".csv", df,header = false,append=true)
 
     return(retVal)
 end
@@ -327,7 +327,7 @@ function withdrawDecision(agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              CSV.write("Data6/activations"*key*".csv", df,header = false,append=true)
+              #CSV.write("Data6/activations"*key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end
