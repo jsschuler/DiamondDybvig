@@ -275,7 +275,7 @@ function withdraw(agt::Agent,exog::Bool)
               exogW=[exog],
               Failure=[retVal]
               )
-              #CSV.write("Data6/withdrawals"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/withdrawals"*key*".csv", df,header = false,append=true)
 
     return(retVal)
 end
@@ -327,7 +327,7 @@ function withdrawDecision(agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              #CSV.write("Data6/activations"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/activations"*key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end
@@ -376,6 +376,5 @@ function model()
             cond=any(withdrawing)
         end
     end
-
 return(bankrupt)
 end

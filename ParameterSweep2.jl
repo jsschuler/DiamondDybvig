@@ -43,7 +43,7 @@ include("functions.jl")
 
 # AGENT COUNT
 # uniform 10 to 1000
-parameterGen(:AgtCnt,Uniform(10,100))
+parameterGen(:AgtCnt,Uniform(10,50))
 # RISK AVERSION
 exogP=Array(.05:.05:.25)
 # INSURANCE PAY OUT
@@ -136,10 +136,10 @@ fixRisk=false
 fixEndow=false
 fixProb=false
 
-
-#for tdx in 1:100
-for tdx in 1:5
-    resList=[]
+resList=[]
+#resList2=[]
+for tdx in 1:500
+#for tdx in 1:1
     #for jdx in 1:parameterRuns
     for jdx in 1:5
         global key
@@ -191,8 +191,8 @@ for tdx in 1:5
         run=model()
         push!(resList,run)
     end
-    paramTable[tdx,:result]=mean(resList)
-    println(paramTable)
+    #paramTable[tdx,:result]=mean(resList)
+    #println(paramTable)
 end
 
 # now, fit the first lightGBM model 
@@ -209,48 +209,11 @@ fakeY=sample([0,1],size(paramTable)[1],replace=true)
 trainDex=floor(Int64,.85*size(paramTable)[1])
 testDex=size(paramTable)[1]-trainDex
 trainSet=sample(vcat(repeat([true],trainDex),repeat([false],testDex)),size(paramTable)[1],replace=false)
+(X,y)=(paramTable[trainSet,[:AgtCnt :Pay :Prem :Exog]],fakeY)
 
+bst = xgboost((X, y), num_round=5, max_depth=6, objective="reg:error")
 
-LGBMClassification(;[
-    objective = "multiclass",
-    num_iterations = 10,
-    learning_rate = .1,
-    num_leaves = 127,
-    max_depth = -1,
-    tree_learner = "serial",
-    num_threads = Sys.CPU_THREADS,
-    histogram_pool_size = -1.,
-    min_data_in_leaf = 20,
-    min_sum_hessian_in_leaf = 10.,
-    lambda_l1 = 0.,
-    lambda_l2 = 0.,
-    min_gain_to_split = 0.,
-    feature_fraction = 1.,
-    feature_fraction_seed = 2,
-    bagging_fraction = 1.,
-    bagging_freq = 0,
-    bagging_seed = 3,
-    early_stopping_round = 0,
-    max_bin = 255,
-    data_random_seed = 1,
-    init_score = "",
-    is_sparse = true,
-    save_binary = false,
-    categorical_feature = Int[],
-    is_unbalance = false,
-    metric = ["multi_logloss"],
-    metric_freq = 1,
-    is_training_metric = false,
-    ndcg_at = Int[],
-    num_machines = 1,
-    local_listen_port = 12400,
-    time_out = 120,
-    machine_list_file = "",
-    num_class = 1,
-    device_type="cpu",
-])
-
-
+bst = xgboost(dtrain, num_round = 100, eval_metric = "rmse", watchlist = OrderedDict(["train" => dtrain, "eval" => dvalid]), early_stopping_rounds = 5, max_depth=6, η=0.3)
 #for tdx in 0:((size(paramTable)[1]/boostingInterval)-1)
 #    println((tdx*100+1))
 #    println((tdx*100+100))

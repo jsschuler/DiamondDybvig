@@ -89,7 +89,7 @@ for agt in agtList
               prob=[agt.p]
               )
               #println(typeof(key))
-              CSV.write("Data6/deposits"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/deposits"*key*".csv", df,header = false,append=true)
 end
 
 run=model()

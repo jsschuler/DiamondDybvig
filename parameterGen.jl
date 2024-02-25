@@ -90,4 +90,4 @@ ctrlFrame[!,"fixProb"]=col7
 ctrlFrame[!,"complete"]=repeat([false],sampSize)
 println(ctrlFrame[1:10,:])
 save_object("runCtrl_"*Dates.format(now(),"yyyymmddHHMMSS")*".jld2",ctrlFrame)
-CSV.write("Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)
+CSV.write("../Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)
