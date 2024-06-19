@@ -16,17 +16,20 @@ end
 function agtGen(endow::Int64,riskAversion::Float64,p::Float64)
     global agtTicker
     agtTicker=agtTicker+1
-    push!(agtList,Agent(agtTicker,endow,riskAversion,0,p))
+    global exogP
+    push!(agtList,Agent(agtTicker,endow,riskAversion,0,exogP))
     # now generate agent file
     global key
+    # now, in this version, let the global probability of withdrawal be the same as the agent probability
+    global exogP
     df=DataFrame(currKey=[key],
               agt=[agtTicker],
               endow=[endow],
               risk=[riskAversion],
-              prob=[p]
+              prob=[exogP]
               )
               #println(typeof(key))
-              #CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
+              CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
 
 
 end

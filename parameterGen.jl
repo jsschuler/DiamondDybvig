@@ -4,6 +4,7 @@
 #               June 2022                                                      #
 #               John S. Schuler                                                #
 #               Parameter Sweep Generation Code                                #
+#               Constrained to have identical agents                           #
 ################################################################################
 using StatsBase
 using DataFrames
@@ -48,18 +49,18 @@ for t in 1:initSize
     push!(col2,sample(payOut,1)[1])
     push!(col3,sample(premium,1)[1])
     push!(col4,sample(exogP,1)[1])
-    if rand()[1] <= .3
-        if rand()[1] <= .5
-            order=sample([true,true,false],3)
-        else
-            order=sample([true,false,false],3)
-        end
-    else
-        order=[false,false,false]
-    end
-    push!(col5,order[1])
-    push!(col6,order[2])
-    push!(col7,order[3])
+    #if rand()[1] <= .3
+    #    if rand()[1] <= .5
+    #        order=sample([true,true,false],3)
+    #    else
+    #        order=sample([true,false,false],3)
+    #    end
+    #else
+    #    order=[false,false,false]
+    #end
+    push!(col5,true)
+    push!(col6,true)
+    push!(col7,true)
 
     push!(initSeed,sample(1:(100*sampSize),1,replace=false)[1])
 
@@ -89,5 +90,8 @@ ctrlFrame[!,"fixEndow"]=col6
 ctrlFrame[!,"fixProb"]=col7
 ctrlFrame[!,"complete"]=repeat([false],sampSize)
 println(ctrlFrame[1:10,:])
+
+
+
 save_object("runCtrl_"*Dates.format(now(),"yyyymmddHHMMSS")*".jld2",ctrlFrame)
 CSV.write("../Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)
