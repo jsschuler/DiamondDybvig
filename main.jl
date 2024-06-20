@@ -21,7 +21,7 @@ include("functions.jl")
 
 ctrlFile=ARGS[1]
 #println(ctrlFile)
-ctrlFrame=@load ctrlFile
+@load ctrlFile
 #println(ctrlFrame[1:10,:])
 # load only incomplete models
 ctrlWorking=ctrlFrame[ctrlFrame[:,"complete"].==false,:]
