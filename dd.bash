@@ -1,100 +1,100 @@
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
-julia -p 16 main.jl
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2
+/opt/julia-1.9.1/bin/julia -p 16 main.jl runCtrl_20240619181814.jld2

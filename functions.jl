@@ -29,7 +29,7 @@ function agtGen(endow::Int64,riskAversion::Float64,p::Float64)
               prob=[exogP]
               )
               #println(typeof(key))
-              CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/agents"*key*".csv", df,header = false,append=true)
 
 
 end
