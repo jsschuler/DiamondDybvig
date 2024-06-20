@@ -102,4 +102,4 @@ currIndex=nrow(ctrlFrame)-nrow(ctrlFrame[ctrlFrame[:,"complete"].==false,:])+1
 #println(ctrlFrame[currIndex,:complete])
 ctrlFrame[currIndex,:complete]=true
 #println(ctrlFrame[currIndex,:complete])
-save_object(ctrlFile,ctrlFrame)
+@save ctrlFile ctrlFrame
