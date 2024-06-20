@@ -22,7 +22,7 @@ println(ARGS[1])
 println(typeof(ARGS[1]))
 ctrlFile=ARGS[1]
 #println(ctrlFile)
-jldopen(ctrlFile, "w")
+@load "ctrl.jld2"
 #println(ctrlFrame[1:10,:])
 # load only incomplete models
 ctrlWorking=ctrlFrame[ctrlFrame[:,"complete"].==false,:]
@@ -103,4 +103,4 @@ currIndex=nrow(ctrlFrame)-nrow(ctrlFrame[ctrlFrame[:,"complete"].==false,:])+1
 #println(ctrlFrame[currIndex,:complete])
 ctrlFrame[currIndex,:complete]=true
 #println(ctrlFrame[currIndex,:complete])
-jldsave(ctrlFile;ctrlFrame=ctrlFrame)
+@save "ctrl.jld2" ctrlFrame
