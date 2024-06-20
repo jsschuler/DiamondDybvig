@@ -1,3 +1,6 @@
+
+
+
 ################################################################################
 #              Diamond-Dybvig ABM                                              #
 #               (networked)                                                    #
@@ -93,5 +96,5 @@ println(ctrlFrame[1:10,:])
 
 
 
-@save "runCtrl_"*Dates.format(now(),"yyyymmddHHMMSS")*".jld2" ctrlFrame
+jldsave("runCtrl_"*Dates.format(now(),"yyyymmddHHMMSS")*".jld2";ctrlFrame=ctrlFrame)
 CSV.write("../Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)

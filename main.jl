@@ -18,10 +18,11 @@ using JLD2
 
 include("objects.jl")
 include("functions.jl")
-
+println(ARGS[1])
+println(typeof(ARGS[1]))
 ctrlFile=ARGS[1]
 #println(ctrlFile)
-@load ctrlFile
+jldopen(ctrlFile, "w")
 #println(ctrlFrame[1:10,:])
 # load only incomplete models
 ctrlWorking=ctrlFrame[ctrlFrame[:,"complete"].==false,:]
@@ -102,4 +103,4 @@ currIndex=nrow(ctrlFrame)-nrow(ctrlFrame[ctrlFrame[:,"complete"].==false,:])+1
 #println(ctrlFrame[currIndex,:complete])
 ctrlFrame[currIndex,:complete]=true
 #println(ctrlFrame[currIndex,:complete])
-@save ctrlFile ctrlFrame
+jldsave(ctrlFile;ctrlFrame=ctrlFrame)
