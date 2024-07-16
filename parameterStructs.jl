@@ -116,11 +116,10 @@ function nodeGen!(pSpace::parameterization)
 end
 
 function graphGen!(pSpace::parameterization)
-    for constr in pSpace.constraints
-        if :value in fieldnames(typeof(constr))
-            
-        else
-
+    # keep track of 
+    for constr in keys(pSpace.nodeDict)
+        if typeof(constr)==constant
+            add_edge!(pSpace.depGraph,pSpace.nodeDict[constr],pSpace.nodeDict[constr.parameter]) 
         end
     end
 end
