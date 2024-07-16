@@ -79,11 +79,12 @@ struct parameterization
     paramArray::Array{parameter}
     constraints::Array{constraint}
     nodeDict::Dict{Union{parameter,constant},Int64}
+    intDict::Dict{Int64,Union{parameter,constant}}
     depGraph::DiGraph
 end
 
 function parameterizationGen()
-    return parameterization(parameter[],constraint[],Dict{Union{parameter,constant},Int64}(),DiGraph())
+    return parameterization(parameter[],constraint[],Dict{Union{parameter,constant},Int64}(),Dict{Int64,Union{parameter,constant}}(),DiGraph())
 end
 
 function parameterAdd!(pSpace::parameterization,param::parameter)
@@ -105,29 +106,64 @@ function nodeGen!(pSpace::parameterization)
     for param in pSpace.paramArray
         t=t+1
         pSpace.nodeDict[param]=t
+        pSpace.intDict[t]=param
+        println("Adding")
+        add_vertex!(pSpace.depGraph)
     end
     # now, generate a constant for every constraint with a value
     for constr in pSpace.constraints
         if :value in fieldnames(typeof(constr))
             t=t+1
-            pSpace.nodeDict[constant(constr)]=t
+            cnst=constant(constr)
+            pSpace.nodeDict[cnst]=t
+            pSpace.intDict[t]=cnst
+            println("Adding")
+            add_vertex!(pSpace.depGraph)
         end
     end
 end
 
 function graphGen!(pSpace::parameterization)
-    # keep track of 
+    # keep track of parameters related to constants
+    constParams=parameter[]
     for constr in keys(pSpace.nodeDict)
         if typeof(constr)==constant
-            add_edge!(pSpace.depGraph,pSpace.nodeDict[constr],pSpace.nodeDict[constr.parameter]) 
+            for pVal in constr.constr.param
+                add_edge!(pSpace.depGraph,pSpace.nodeDict[constr],pSpace.nodeDict[pVal]) 
+                push!(constParams,pVal)
+            end
         end
     end
+    # now loop over constraints again and connect parameters that have non-constant constraints
+    for constr in keys(pSpace.nodeDict)
+        if !(:value in fieldnames(typeof(constr))) & !(constr isa parameter) & !(constr isa constant)
+            paramOrder=parameter[]
+            for param in constr.param
+                if param in constParams
+                    push!(paramOrder,param)
+                end
+            end
+            for param in constr.param
+                if !(param in constParams)
+                    push!(paramOrder,param)
+                end
+            end
+            # now, add an edge for all adjacent pairs
+            for i in 1:(len(paramOrder)-1)
+                source=paramOrder[i]
+                dest=paramOrder[i+1]
+                add_edge!(pSpace.depGraph,pSpace.nodeDict[source],pSpace.nodeDict[dest])
+            end
+        end
+    end
+    
+
 end
 
 
-function parameterizationSetup!(pSetup::parameterization)
+#function parameterizationSetup!(pSetup::parameterization)
 
-end
+#end
 
 # test some stuff
 paramSpace=parameterizationGen()
@@ -141,4 +177,14 @@ println(paramSpace)
 println(fieldnames(typeof(constr1)))
 println(:value in fieldnames(typeof(constr1)))
 nodeGen!(paramSpace)
-println(paramSpace)
+println(paramSpace.paramArray)
+println(paramSpace.nodeDict)
+graphGen!(paramSpace)
+println(collect(vertices(paramSpace.depGraph)))
+println(collect(edges(paramSpace.depGraph)))
+for edg in edges(paramSpace.depGraph)
+    println(paramSpace.intDict[src(edg)])
+    println(paramSpace.intDict[dst(edg)])
+end
+
+# now, we need functions that turn the 
