@@ -187,4 +187,18 @@ for edg in edges(paramSpace.depGraph)
     println(paramSpace.intDict[dst(edg)])
 end
 
-# now, we need functions that turn the 
+# now, we need functions that sample
+# First, we sample through edges
+# then, we sample singleton nodes
+# Thus, we need an ordering function that orders edges
+
+function orderGraph(grph::SimpleDiGraph)
+    # Step 1: find a root node
+    # for all edges, find the edges whose sources have no in-neighbors
+    rootVec=[]
+    for edg in edges(grph)
+        if len(inneighbors(grph,src(edge)))==0
+            push!(rootVec,edge)
+        end
+    end
+end
