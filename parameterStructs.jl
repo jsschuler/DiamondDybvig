@@ -154,7 +154,7 @@ function addEqualityConstraint(pSpace::parameterization,param1::parameter,param2
     pSpace.constraints[Edge(node1,node2)]=constrnt
 end
 
-function addEqualityConstraint(pSpace::parameterization,param1::categorical,param2::categorical)
+function addInEqualityConstraint(pSpace::parameterization,param1::categorical,param2::categorical)
     node1=pSpace.nodeDict[param1]
     node2=pSpace.nodeDict[param2]
     constrnt=categoricalInequalityConstraint(param1,param2)
