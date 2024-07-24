@@ -79,6 +79,9 @@ mutable struct parameterization
     depGraph::DiGraph
 end
 
+function parameterizationGen()
+    return parameterization(parameter[],Dict{Edge,constraint}(),Dict{parameter,Int64}(),Dict{Int64,parameter}(),DiGraph())
+
 # Now, we can add constraints one by one in a directed manner. 
 # This means that we have manual control over the dependency graph
 function addConstant(pSpace::parameterization,value)
@@ -177,3 +180,4 @@ function addInequalityConstraint(pSpace::parameterization,param1::ordinal,param2
     add_edge!(pSpace.depGraph,node1,node2)
     pSpace.constraints[Edge(node1,node2)]=constrnt
 end
+
