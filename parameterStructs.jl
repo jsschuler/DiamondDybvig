@@ -185,3 +185,7 @@ function addInequalityConstraint(pSpace::parameterization,param1::ordinal,param2
     return pSpace
 end
 
+# now we can calculate the degrees of freedom which is the total number of non-constant parameters minus the total number of equality constraints. 
+# and use quasi-random / space filling methods to fill the unit n-cube
+# then, making use of quantile functions and truncated distributions where necessary, we can turn the data in the unit n-cube into the correct parameters
+# for the prior distribution of the 
