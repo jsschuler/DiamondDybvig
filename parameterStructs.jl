@@ -32,14 +32,28 @@ struct nonEquiCategorical <: categorical
     values::AbstractArray
     probs::Array{Float64}
 end
+# we need a struct for a constant
+struct constant <: parameter
+    value
+end
 
 # now, some types and structs to keep track of constraints
 
 abstract type constraint end
-struct equalityConstraint <: constraint 
+abstract type equalityConstraint end
+
+struct valueEqualityConstraint <: equalityConstraint 
+    param1::constant
+    param2::parameter
+end
+
+struct paramEqualityConstraint <: equalityConstraint 
     param1::parameter
     param2::parameter
 end
+
+
+
 abstract type inequalityConstraint <: constraint end
 
 struct categoricalInequalityConstraint
@@ -64,10 +78,7 @@ end
 # and constraints that set all parameter instances of this type
 # as equal but let that value vary
 
-# we need a struct for a constant
-struct constant <: parameter
-    value
-end
+
 
 # a parameterization keeps track of parameters and constraints
 
@@ -225,7 +236,44 @@ end
 # then, making use of quantile functions and truncated distributions where necessary, we can turn the data in the unit n-cube into the correct parameters
 # we will need a number of functions for this
 # we want functions that return whether we need to advance to the next dimension of the matrix or not
-function constraintProc(constr::)
+struct valueEqualityConstraint <: equalityConstraint 
+    param1::constant
+    param2::parameter
+end
+
+struct paramEqualityConstraint <: equalityConstraint 
+    param1::parameter
+    param2::parameter
+end
+
+function constraintProc(constr::valueEqualityConstraint,dimTicker::Int64,n::Int64,UMat::Matrix{Float64})
+    # now, if the first parameter is a constant, we return the same value and do not advance the dimension ticker
+    return (repeat([constr.param1.value],n),dimTicker)
+end
+
+function constraintProc(constr::paramEqualityConstraint,dimTicker::Int64,n::Int64,UMat::Matrix{Float64})
+    # now, if the first parameter is a variable, we return the variable values and do not advance the dimension ticker
+    return (repeat([constr.param1.value],n),dimTicker)
+end
+
+struct categoricalInequalityConstraint
+    param1::categorical
+    param2::categorical
+end
+
+struct cardinalInequalityConstraint
+    param1::cardinal
+    param2::cardinal
+    lessThan::Bool
+end
+
+struct ordinalInequalityConstraint
+    param1::ordinal
+    param2::ordinal
+    lessThan::Bool
+end
+
+
 
 function paramGen(pSpace::parameterization,n::Int64)
     dim=degreesOfFreedom(pSpace)
