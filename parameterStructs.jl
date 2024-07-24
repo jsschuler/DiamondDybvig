@@ -186,6 +186,58 @@ function addInequalityConstraint(pSpace::parameterization,param1::ordinal,param2
 end
 
 # now we can calculate the degrees of freedom which is the total number of non-constant parameters minus the total number of equality constraints. 
+function degreesOfFreedom(pSpace::parameterization)
+    paramCount=0
+    for param in pSpace.paramArray
+        if typeof(param)!=constant
+            paramCount=paramCount+1
+        end
+    end
+    eqConstraints=0
+    for constr in pSpace.constraints
+        if typeof(constr)==equalityConstraint
+            eqConstraints=eqConstraints+1
+        end
+    end
+    return paramCount-eqConstraints
+end
+
 # and use quasi-random / space filling methods to fill the unit n-cube
+
+
+function uniformFill(dim::Int64,n::Int64)
+    # get the first dim prime numbers
+    primeNumbers=Int64[]
+    tick::Int64=0
+    while length(primeNumbers) < dim
+        nextP=nextprime(tick)
+        push!(primeNumbers,nextP)
+        tick=nextP+1
+    end
+    #println(primeNumbers)
+    haltSeq=[]
+    for prm in primeNumbers
+        push!(haltSeq,collect(Halton(prm)[1:n]))
+    end
+    return hcat(haltSeq...)
+end
+
 # then, making use of quantile functions and truncated distributions where necessary, we can turn the data in the unit n-cube into the correct parameters
-# for the prior distribution of the 
+# we will need a number of functions for this
+# we want functions that return whether we need to advance to the next dimension of the matrix or not
+function constraintProc(constr::)
+
+function paramGen(pSpace::parameterization,n::Int64)
+    dim=degreesOfFreedom(pSpace)
+    uMat=uniformFill(dim,n)
+    # now get the edges at the "edge" of the network.
+    border=Edge[]
+    for edg in edges(pSpace.depGraph)
+        if length(inneighbors(src(edg)))==0
+            push!(border,edg)
+        end
+    end
+
+
+end
+
