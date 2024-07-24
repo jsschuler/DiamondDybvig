@@ -81,7 +81,7 @@ end
 
 function parameterizationGen()
     return parameterization(parameter[],Dict{Edge,constraint}(),Dict{parameter,Int64}(),Dict{Int64,parameter}(),DiGraph())
-
+end
 # Now, we can add constraints one by one in a directed manner. 
 # This means that we have manual control over the dependency graph
 function addConstant(pSpace::parameterization,value)
@@ -155,6 +155,7 @@ function addEqualityConstraint(pSpace::parameterization,param1::parameter,param2
     constrnt=equalityConstraint(param1,param2)
     add_edge!(pSpace.depGraph,node1,node2)
     pSpace.constraints[Edge(node1,node2)]=constrnt
+    return pSpace
 end
 
 function addInEqualityConstraint(pSpace::parameterization,param1::categorical,param2::categorical)
@@ -163,6 +164,7 @@ function addInEqualityConstraint(pSpace::parameterization,param1::categorical,pa
     constrnt=categoricalInequalityConstraint(param1,param2)
     add_edge!(pSpace.depGraph,node1,node2)
     pSpace.constraints[Edge(node1,node2)]=constrnt
+    return pSpace
 end
 
 function addInequalityConstraint(pSpace::parameterization,param1::cardinal,param2::cardinal,lessThan::Bool)
@@ -171,6 +173,7 @@ function addInequalityConstraint(pSpace::parameterization,param1::cardinal,param
     constrnt=cardinalInequalityConstraint(param1,param2,lessThan)
     add_edge!(pSpace.depGraph,node1,node2)
     pSpace.constraints[Edge(node1,node2)]=constrnt
+    return pSpace
 end
 
 function addInequalityConstraint(pSpace::parameterization,param1::ordinal,param2::ordinal,lessThan::Bool)
@@ -179,5 +182,6 @@ function addInequalityConstraint(pSpace::parameterization,param1::ordinal,param2
     constrnt=ordinalInequalityConstraint(param1,param2,lessThan)
     add_edge!(pSpace.depGraph,node1,node2)
     pSpace.constraints[Edge(node1,node2)]=constrnt
+    return pSpace
 end
 
