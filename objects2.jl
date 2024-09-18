@@ -16,11 +16,16 @@ mutable struct Model
     agtTicker::Int64
     depth::Int64
     insur::Float64
-    insur::Float64
+    # prod is defined as a premium over insur
     prod::Float64
     bargRes::Int64
     # we need an exogenous probability of withdrawal
     exogP::Float64
+    # now, since the agents are uniform, we need the uniform agent level parameters
+    endow::Int64
+    riskAversion::Float64
+    deposit::Int64
+    p::Float64
     # we need a model KeyCol
     sampSize::Int64
     seed::Int64

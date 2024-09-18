@@ -1,5 +1,13 @@
-# the functions file
+################################################################################################################
+#                               Functions File: Uniform Version                                                #
+#                               Diamond Dybvig                                                                 #
+#                               September 2024                                                                 #
+#                               John S. Schuler                                                                #
+################################################################################################################
 
+# Important: CLEARLY DISTINGUISH functions operating on main model agents vs those operating on the cloned simulation agents
+
+# a utility function that takes an agent object and an quantity
 function util(agt::Agent,x::Int64)
     if x < 0
         x=0
@@ -13,12 +21,17 @@ function util(agt::Agent,x::Int64)
     end
 end
 
-function agtGen(mod::Model,endow::Int64,riskAversion::Float64,p::Float64)
+# this function generates an agent in a model
+
+function agtGen(mod::Model)
 
     mod.agtTicker=mod.agtTicker+1
-    push!(agtList,Agent(agtTicker,endow,riskAversion,0,mod.exogP))
+    push!(agtList,Agent(mod.agtTicker,mod.endow,mod.riskAversion,0,mod.p))
     # now generate agent file
-    # now, in this version, let the global probability of withdrawal be the same as the agent probability
+    # Recall, there are two parameters, the agent's subject withdrawal probability which is the same for all agents
+    # and the actual exogenous type 1 probability. We are calibrating the model such that the empirical
+    # withdrawal probability matches the single subjective probability for all agents 
+    # and so the agents have ratEx!
     df=DataFrame(currKey=[mod.key],
               agt=[mod.agtTicker],
               endow=[endow],
@@ -93,37 +106,42 @@ end
             end
         end
     end
-
+# the following function simulates one shot of the process. 
+# that is, a single exogenous withdrawal
 function agtSimRound(mod::Model,agt::Agent)
     # this simulates one round
-    myBinom=Binomial(length(agtList),agt.p)
+    myBinom=Binomial(length(mod.agtList),agt.p)
     withdrawals=rand(myBinom,1)[1]
     agtWithDraw=sample(mod.agtList,withdrawals,replace=false)
     # is the current agent among those who withdrew?
+    # copy the vault so as not to change it
     simVault=theBank.vault
-    withdrew=false
-    withdrew::Bool
+    # initialize withdrew to false. We will change it if the current agent in fact withdrew
+    withdrew::Bool=false
     # we need to track how many deposits are withdrawn
     # so we can calculate the agent's shares of the return
     withDrawEndow=Int64[]
-    # save the original vault for later calculations
+    # save the original vault for later calculations of shares
     totVault=theBank.vault
     for currAgt in agtWithDraw
-        simVault=simVault-ceil(Int64,(1+insur)*currAgt.deposit)
+        #remove its endowment from the simulated vault
+        simVault=simVault-ceil(Int64,(1+mod.insur)*currAgt.deposit)
         push!(withDrawEndow,currAgt.endow)
         if currAgt==agt
             if simVault < 0
                 #println("Bankruptcy!")
-                agtReturn=currAgt.endow+ceil(Int64,(1+insur)*currAgt.deposit)+simVault
-                agtReturn::Int64
+                # if the simVault is negative, we remove the negative from the agent's return
+                agtReturn::Int64=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)+simVault
+                # set withdrew to true if the agent did
                 withdrew=true
             else
                 #println("No Bankruptcy")
                 #println("Debug")
                 #println(currAgt.deposit)
                 #println(ceil(Int64,(1+insur)*currAgt.deposit))
-                agtReturn=currAgt.endow+ceil(Int64,(1+insur)*currAgt.deposit)
-                agtReturn::Int64
+                # Otherwise, the agent gets the full return
+                agtReturn::Int64=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)
+                # set withdrew to true if the agent did
                 withdrew=true
             end
             #println("Withdrawal")
@@ -132,17 +150,17 @@ function agtSimRound(mod::Model,agt::Agent)
     end
     # now if the agent did not withdraw, it gets its share of the leftover
     if withdrew==false
-        totReturn=ceil(Int64,(1+prod)*max(0,simVault))
+        totReturn=ceil(Int64,(1+mod.insur+mod.prod)*max(0,simVault))
         #println("No Withdrawal")
         #println("Total Return")
         #println(totReturn)
+        # agent gets a share of the return proportional to what it put in
         if totVault - sum(withDrawEndow) > 0
             share=agt.deposit/(totVault-sum(withDrawEndow))
         else
             share=0
         end
-        agtReturn=agt.endow+floor(Int64,share*totReturn)
-        agtReturn::Int64
+        agtReturn::Int64=agt.endow+floor(Int64,share*totReturn)
         #println("Agent Return")
         #println(agtReturn)
     end
@@ -150,14 +168,16 @@ function agtSimRound(mod::Model,agt::Agent)
     return agtReturn
 end
 
+# now we have a function that runs the one-shot agent simulation function in parallel
 function agtSim(mod::Model,agt::Agent)
     # this function applies the simulation in parallel
-    global depth
-    agtArray=repeat([mod,agt],depth)
+    agtArray=repeat([mod,agt],mod.depth)
     Folds.map(agtSimRound,agtArray)
 end
 
-function simUtil(mod::Model,agt)
+# now, we need a function that calculates a vector of utilities from the simulation returns
+
+function simUtil(mod::Model,agt::Agent)
     # this function runs the simulation and returns the utility
     aFunc   = function(x)
         return(util(agt,x))
@@ -182,20 +202,18 @@ function simUtil(mod::Model,agt)
     return utilVec
 end
 
-# now we need a function that runs the bargaining
+# now we need a function that runs the bargaining for each agent
 function agtDecision(mod::Model,agt::Agent)
     # the agent decides how much to invest given all
     # other agents have invested
     # reset this agent's endowment and deposit
-    origEndow=agt.endow+agt.deposit
-    origEndow::Int64
-    origDeposit=agt.deposit::Int64
+    origEndow::Int64=agt.endow+agt.deposit
+    origDeposit::Int64=agt.deposit
     #println("original endowment")
     #println(origEndow)
     #println(bargRes)
     #println(agt.endow)
-    options=collect(0:mod.bargRes:origEndow)
-    options::Array{Int64}
+    options::Array{Int64}=collect(0:mod.bargRes:origEndow)
     #println("options")
     #println(options)
     Util=Float64[]
@@ -205,6 +223,10 @@ function agtDecision(mod::Model,agt::Agent)
         #println("Deposit and Endow")
         #println(agt.deposit)
         #println(agt.endow)
+
+        # the model parameter "depth" refers to the number of times each agent runs a simulation
+        # thus, it is the appropriate denominator for the expected utility
+
         totUtil=sum(simUtil(agt))/mod.depth
         totUtil::Float64
         push!(Util,totUtil)
@@ -217,6 +239,9 @@ function agtDecision(mod::Model,agt::Agent)
     #for i in 1:length(options)
         #println(options[i]," ",Util[i])
     #end
+
+    # the agent finds the deposit with the highest expected utility
+
     bestDeposit=options[findmax(Util)[2]]
     #println("Best Deposit")
     #println(bestDeposit)
