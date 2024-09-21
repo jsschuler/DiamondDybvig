@@ -34,9 +34,9 @@ function agtGen(mod::Model)
     # and so the agents have ratEx!
     df=DataFrame(currKey=[mod.key],
               agt=[mod.agtTicker],
-              endow=[endow],
-              risk=[riskAversion],
-              prob=[exogP]
+              endow=[mod.endow],
+              risk=[mod.riskAversion],
+              prob=[mod.p]
               )
               #println(typeof(key))
               CSV.write("../Data6/agents"*key*".csv", df,header = false,append=true)
@@ -44,68 +44,6 @@ function agtGen(mod::Model)
 
 end
 
-    # this function generates the agents with the parametric constraints
-    global fixRisk
-    global fixEndow
-    global fixProb
-    global agtCnt
-    if fixRisk
-        if fixEndow
-            # fix risk and endow
-            fEndow=sample(50:50:1000,1)[1]
-            fRisk=sample(0:.1:2)[1]
-            for a in 1:agtCnt
-                agtGen(fEndow,fRisk,sample(.05:.05:.2,1)[1])
-            end
-        else
-            if fixProb
-                # fix risk and prob
-                fRisk=sample(0:.1:2)[1]
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],fRisk,fProb)
-                end
-            else
-                # fix risk only
-                fRisk=sample(0:.1:2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],fRisk,sample(.05:.05:.2,1)[1])
-                end
-            end
-        end
-    else
-        if fixEndow
-            fEndow=sample(50:50:1000,1)[1]
-            if fixProb
-                fProb=sample(.05:.05:.2)[1]
-                # fix endow and prob
-                fEndow=sample(50:50:1000,1)[1]
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(fEndow,sample(0:.1:2)[1],fProb)
-                end
-            else
-                # fix endow only
-                fEndow=sample(50:50:1000,1)[1]
-                for a in 1:agtCnt
-                    agtGen(fEndow,sample(0:.1:2)[1],sample(.05:.05:.2,1)[1])
-                end
-            end
-        else
-            if fixProb
-                # fix prob only
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],sample(0:.1:2)[1],fProb)
-                end
-            else
-                # fix nothing
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],sample(0:.1:2)[1],sample(.05:.05:.2,1)[1])
-                end
-            end
-        end
-    end
 # the following function simulates one shot of the process. 
 # that is, a single exogenous withdrawal
 function agtSimRound(mod::Model,agt::Agent)
@@ -131,7 +69,7 @@ function agtSimRound(mod::Model,agt::Agent)
             if simVault < 0
                 #println("Bankruptcy!")
                 # if the simVault is negative, we remove the negative from the agent's return
-                agtReturn::Int64=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)+simVault
+                agtReturn=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)+simVault
                 # set withdrew to true if the agent did
                 withdrew=true
             else
@@ -140,7 +78,7 @@ function agtSimRound(mod::Model,agt::Agent)
                 #println(currAgt.deposit)
                 #println(ceil(Int64,(1+insur)*currAgt.deposit))
                 # Otherwise, the agent gets the full return
-                agtReturn::Int64=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)
+                agtReturn=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)
                 # set withdrew to true if the agent did
                 withdrew=true
             end
@@ -160,7 +98,7 @@ function agtSimRound(mod::Model,agt::Agent)
         else
             share=0
         end
-        agtReturn::Int64=agt.endow+floor(Int64,share*totReturn)
+        agtReturn=agt.endow+floor(Int64,share*totReturn)
         #println("Agent Return")
         #println(agtReturn)
     end
@@ -336,7 +274,7 @@ function withdrawDecision(mod::Model,agt::Agent)
 end
 
 
-function model(mod::Model)
+function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
     univBinom=Binomial(length(mod.agtList),mod.exogP)
@@ -377,3 +315,4 @@ function model(mod::Model)
     end
 return(bankrupt)
 end
+

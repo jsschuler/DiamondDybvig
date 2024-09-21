@@ -14,6 +14,7 @@ end
 
 mutable struct Model
     agtTicker::Int64
+    agtList::Array(agent)
     depth::Int64
     insur::Float64
     # prod is defined as a premium over insur

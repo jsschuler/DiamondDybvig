@@ -8,7 +8,7 @@ using Dates
 using JLD2
 
 
-include("objectsw.jl")
+include("objects2.jl")
 include("functions2.jl")
 
 # In this version, all agents are identical so
@@ -23,3 +23,24 @@ include("functions2.jl")
     # endowment
     # coefficient of relative risk aversion
     
+# generate test model
+
+mod=Model(
+    0,
+    agent[],
+    1000,
+    .1,
+    .1,
+    1000,
+    .2,
+    1000,
+    1.0,
+    1000,
+    .2,
+    1000,
+    12,
+    Bank(0),
+    "k"
+)
+
+modelRun(mod)
