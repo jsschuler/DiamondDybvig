@@ -26,7 +26,7 @@ end
 function agtGen(mod::Model)
 
     mod.agtTicker=mod.agtTicker+1
-    push!(agtList,Agent(mod.agtTicker,mod.endow,mod.riskAversion,0,mod.p))
+    push!(mod.agtList,Agent(mod.agtTicker,mod.endow,mod.riskAversion,0,mod.p))
     # now generate agent file
     # Recall, there are two parameters, the agent's subject withdrawal probability which is the same for all agents
     # and the actual exogenous type 1 probability. We are calibrating the model such that the empirical
@@ -39,7 +39,7 @@ function agtGen(mod::Model)
               prob=[mod.p]
               )
               #println(typeof(key))
-              CSV.write("../Data6/agents"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/agents"*mod.key*".csv", df,header = false,append=true)
 
 
 end
@@ -53,14 +53,14 @@ function agtSimRound(mod::Model,agt::Agent)
     agtWithDraw=sample(mod.agtList,withdrawals,replace=false)
     # is the current agent among those who withdrew?
     # copy the vault so as not to change it
-    simVault=theBank.vault
+    simVault=mod.theBank.vault
     # initialize withdrew to false. We will change it if the current agent in fact withdrew
     withdrew::Bool=false
     # we need to track how many deposits are withdrawn
     # so we can calculate the agent's shares of the return
     withDrawEndow=Int64[]
     # save the original vault for later calculations of shares
-    totVault=theBank.vault
+    totVault=mod.theBank.vault
     for currAgt in agtWithDraw
         #remove its endowment from the simulated vault
         simVault=simVault-ceil(Int64,(1+mod.insur)*currAgt.deposit)
@@ -109,8 +109,11 @@ end
 # now we have a function that runs the one-shot agent simulation function in parallel
 function agtSim(mod::Model,agt::Agent)
     # this function applies the simulation in parallel
-    agtArray=repeat([mod,agt],mod.depth)
-    Folds.map(agtSimRound,agtArray)
+    modArray=repeat([mod],mod.depth)
+    agtArray=repeat([agt],mod.depth)
+    #println(agtArray)
+    #println(typeof(agtArray))
+    Folds.map(agtSimRound,modArray,agtArray)
 end
 
 # now, we need a function that calculates a vector of utilities from the simulation returns
@@ -165,7 +168,7 @@ function agtDecision(mod::Model,agt::Agent)
         # the model parameter "depth" refers to the number of times each agent runs a simulation
         # thus, it is the appropriate denominator for the expected utility
 
-        totUtil=sum(simUtil(agt))/mod.depth
+        totUtil=sum(simUtil(mod,agt))/mod.depth
         totUtil::Float64
         push!(Util,totUtil)
         #println("Utility")
@@ -199,7 +202,7 @@ function bargain(mod::Model)
     penultiRound=ultiRound
     while true
         for i  in 1:length(mod.agtList)
-            agtDecision(mod.agtList[i])
+            agtDecision(mod,mod.agtList[i])
             ultiRound[i]=mod.agtList[i].deposit
         end
         #println("Arrays")
@@ -219,10 +222,10 @@ function withdraw(mod::Model,agt::Agent,exog::Bool)
     mod.theBank.vault=mod.theBank.vault-payout
     agt.endow=agt.endow+payout
     deleteat!(mod.agtList, findall(x->x==agt,mod.agtList))
-    push!(withDList,agt)
+    #push!(withDList,agt)
     retVal=false
     retVal::Bool
-    if theBank.vault==0
+    if mod.theBank.vault==0
         retVal=true
     end
     df=DataFrame(currKey=[mod.key],
@@ -249,7 +252,7 @@ function withdrawDecision(mod::Model,agt::Agent)
 
 
     wPayout::Float64=aFunc(min(mod.theBank.vault,round(Int64,(1+mod.insur)*agt.deposit)))
-    totUtil::Float64=sum(simUtil(agt))/mod.depth
+    totUtil::Float64=sum(simUtil(mod,agt))/mod.depth
     retVal::Bool=false
     bankrupt::Bool=false
 
@@ -260,7 +263,7 @@ function withdrawDecision(mod::Model,agt::Agent)
     end
 
     global key
-    df=DataFrame(currKey=[key],
+    df=DataFrame(currKey=[mod.key],
               agt=[agt.idx],
               deposit=[agt.deposit],
               withdraw=[withdrawDesire],
@@ -268,7 +271,7 @@ function withdrawDecision(mod::Model,agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              CSV.write("../Data6/activations"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/activations"*mod.key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end
@@ -277,6 +280,8 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
+    #println("P")
+    #println(mod.exogP)
     univBinom=Binomial(length(mod.agtList),mod.exogP)
     withdrawals=rand(univBinom,1)[1]
     #println("withdrawals exogenous")
@@ -284,12 +289,11 @@ function modelRun(mod::Model)
     agtWithdraw=sample(mod.agtList,withdrawals,replace=false)
     bankrupt=false
     bankrupt::Bool
-
+    withdrawalsCount::Int64=withdrawals
     for agt in agtWithdraw
         bankrupt=withdraw(mod,agt,true)
         if bankrupt
             #println("Bank FAILS!")
-            return(bankrupt)
         end
     end
     if ! bankrupt
@@ -300,19 +304,22 @@ function modelRun(mod::Model)
         while cond
             withdrawing=Bool[]
             # sort agents in random order
-            agtList=sample(agtList,length(agtList),replace=false)
-            for agt in agtList
+            mod.agtList=sample(mod.agtList,length(mod.agtList),replace=false)
+            for agt in mod.agtList
                 # this is where we track activation
-                decision=withdrawDecision(agt)
+                decision=withdrawDecision(mod,agt)
                 push!(withdrawing,decision[2])
+                if decision[2]
+                    withdrawalsCount=withdrawalsCount+1
+                end
                 if decision[1]
                     #println("Bank Fails!")
-                    return(decision[1])
+                    bankrupt=true
                 end
             end
             cond=any(withdrawing)
         end
     end
-return(bankrupt)
+    return (bankrupt,withdrawalsCount)
 end
 

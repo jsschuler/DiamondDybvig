@@ -25,22 +25,45 @@ include("functions2.jl")
     
 # generate test model
 
-mod=Model(
-    0,
-    agent[],
-    1000,
-    .1,
-    .1,
-    1000,
-    .2,
-    1000,
-    1.0,
-    1000,
-    .2,
-    1000,
-    12,
-    Bank(0),
-    "k"
-)
+function tstModelGen(arg)
 
-modelRun(mod)
+    mod=Model(
+        0, 
+        Agent[],
+        1000,
+        .1,
+        .1,
+        1000,
+        .25,
+        1000,
+        0.0,
+        1000,
+        .5,
+        1000,
+        sample(1:100000,1)[1],
+        Bank(0),
+        "k"
+    )
+    for j in 1:10
+        agtGen(mod::Model)
+    end
+    deposits=Int64[]
+    for agt in mod.agtList
+        agt.deposit=agt.endow-10
+        push!(deposits,agt.deposit)
+        agt.endow=10
+    end
+    mod.theBank=Bank(sum(deposits))
+    bargain(mod)
+    #println("Deposits")
+    #for agt in mod.agtList
+    #    println(agt.deposit)
+    #end
+
+    
+    #println()
+    result=modelRun(mod)
+    return result[1]
+end
+
+println(mean(tstModelGen.(1:1000)))
