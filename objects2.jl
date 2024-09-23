@@ -25,7 +25,6 @@ mutable struct Model
     # now, since the agents are uniform, we need the uniform agent level parameters
     endow::Int64
     riskAversion::Float64
-    deposit::Int64
     p::Float64
     # we need a model KeyCol
     sampSize::Int64

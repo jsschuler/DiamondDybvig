@@ -202,12 +202,13 @@ function bargain(mod::Model)
     penultiRound=ultiRound
     while true
         for i  in 1:length(mod.agtList)
-            agtDecision(mod,mod.agtList[i])
+            println("Decisions!")
+            println(agtDecision(mod,mod.agtList[i]))
             ultiRound[i]=mod.agtList[i].deposit
         end
-        #println("Arrays")
-        #println(penultiRound)
-        #println(ultiRound)
+        println("Arrays")
+        println(penultiRound)
+        println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
