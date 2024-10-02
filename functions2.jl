@@ -7,6 +7,20 @@
 
 # Important: CLEARLY DISTINGUISH functions operating on main model agents vs those operating on the cloned simulation agents
 
+# we want a function that generates the model 
+function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
+    seed::Int64=sample(1:100000000,1)[1]
+    mod=Model(0,Agent[],1000,insur,prod,100,exogP,riskAversion,p,1000,seed,theBank(0),"run-"*string(now())*"-"*string(seed))
+    for agt in mod.agtList
+        agt.deposit=agt.endow-100
+        agt.endow=100
+    end
+    bargain(mod)
+    agtList=filter!(x-> x.deposit !=0,agtList)
+    mod.theBank=Bank(sum(deposits))
+end
+
+
 # a utility function that takes an agent object and an quantity
 function util(agt::Agent,x::Int64)
     if x < 0
