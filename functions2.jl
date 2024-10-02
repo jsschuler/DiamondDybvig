@@ -48,9 +48,17 @@ end
 # that is, a single exogenous withdrawal
 function agtSimRound(mod::Model,agt::Agent)
     # this simulates one round
-    myBinom=Binomial(length(mod.agtList),agt.p)
+    # now, what agents are participating?
+    participatingAgts::Array{Agent}=Agent[]
+    for agt in mod.agtList
+        if agt.deposit > 0
+            push!(participatingAgts,agt)
+        end
+    end
+
+    myBinom=Binomial(length(participatingAgts),agt.p)
     withdrawals=rand(myBinom,1)[1]
-    agtWithDraw=sample(mod.agtList,withdrawals,replace=false)
+    agtWithDraw=sample(participatingAgts,withdrawals,replace=false)
     # is the current agent among those who withdrew?
     # copy the vault so as not to change it
     simVault=mod.theBank.vault
@@ -66,10 +74,11 @@ function agtSimRound(mod::Model,agt::Agent)
         simVault=simVault-ceil(Int64,(1+mod.insur)*currAgt.deposit)
         push!(withDrawEndow,currAgt.endow)
         if currAgt==agt
+            #println("Withdrawal")
             if simVault < 0
                 #println("Bankruptcy!")
                 # if the simVault is negative, we remove the negative from the agent's return
-                agtReturn=currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)+simVault
+                agtReturn=max(0,currAgt.endow+ceil(Int64,(1+mod.insur)*currAgt.deposit)+simVault)
                 # set withdrew to true if the agent did
                 withdrew=true
             else
@@ -82,7 +91,7 @@ function agtSimRound(mod::Model,agt::Agent)
                 # set withdrew to true if the agent did
                 withdrew=true
             end
-            #println("Withdrawal")
+            #println("Withdrawal Return")
             #println(agtReturn)
         end
     end
@@ -99,7 +108,7 @@ function agtSimRound(mod::Model,agt::Agent)
             share=0
         end
         agtReturn=agt.endow+floor(Int64,share*totReturn)
-        #println("Agent Return")
+        #println("Non-Withdrawal Return")
         #println(agtReturn)
     end
     #println(agtReturn)
@@ -113,7 +122,9 @@ function agtSim(mod::Model,agt::Agent)
     agtArray=repeat([agt],mod.depth)
     #println(agtArray)
     #println(typeof(agtArray))
-    Folds.map(agtSimRound,modArray,agtArray)
+    #Folds.map(agtSimRound,modArray,agtArray)
+    #println("Running Agent Simulation")
+    agtSimRound.(modArray,agtArray)
 end
 
 # now, we need a function that calculates a vector of utilities from the simulation returns
@@ -131,6 +142,8 @@ function simUtil(mod::Model,agt::Agent)
     #utilVec=map(aFunc,returns)
     utilVec=Folds.map(aFunc,returns)
     utilVec::Array{Float64,1}
+    #println("Returns")
+    #println(returns)
     retMean=mean(returns)
     retMin=minimum(returns)
     retMax=maximum(returns)
@@ -184,13 +197,19 @@ function agtDecision(mod::Model,agt::Agent)
     # the agent finds the deposit with the highest expected utility
 
     bestDeposit=options[findmax(Util)[2]]
-    #println("Best Deposit")
-    #println(bestDeposit)
+    println("Best Deposit")
+    println(bestDeposit)
+    println("Best Utility")
+    println(Util[findmax(Util)[2]])
+    println("All Utils")
+    println(Util)
+    println("Vault")
+    println(mod.theBank.vault)
     agt.deposit=bestDeposit
     agt.endow=origEndow-agt.deposit
     # now reset vault
     mod.theBank.vault=mod.theBank.vault-origDeposit+agt.deposit
-
+    return agt.deposit
 end
 
 
@@ -202,13 +221,13 @@ function bargain(mod::Model)
     penultiRound=ultiRound
     while true
         for i  in 1:length(mod.agtList)
-            println("Decisions!")
-            println(agtDecision(mod,mod.agtList[i]))
+            #println("Decisions!")
+            #println(agtDecision(mod,mod.agtList[i]))
             ultiRound[i]=mod.agtList[i].deposit
         end
-        println("Arrays")
-        println(penultiRound)
-        println(ultiRound)
+        #println("Arrays")
+        #println(penultiRound)
+        #println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end

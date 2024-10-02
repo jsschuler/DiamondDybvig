@@ -30,27 +30,63 @@ mod=Model(
     Agent[],
     10000,
     .1,
-    .1,
+    .75,
     100,
     .25,
     1000,
-    0.0,
+    0.5,
     .5,
     1000,
     sample(1:100000,1)[1],
     Bank(0),
     "k"
 )
-for j in 1:100
+for j in 1:10
     agtGen(mod::Model)
 end
 deposits=Int64[]
 for agt in mod.agtList
-    agt.deposit=agt.endow-10
+    agt.deposit=agt.endow
     push!(deposits,agt.deposit)
-    agt.endow=10
+    agt.endow=0
 end
 mod.theBank=Bank(sum(deposits))
+# now, let's simulate the first agent's first round
+#simUtil(mod,mod.agtList[1])
+#agtDecision(mod,mod.agtList[1])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[1].deposit)
+#
+#simUtil(mod,mod.agtList[2])
+#agtDecision(mod,mod.agtList[2])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[2].deposit)
+#
+#simUtil(mod,mod.agtList[3])
+#agtDecision(mod,mod.agtList[3])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[3].deposit)
+#
+#simUtil(mod,mod.agtList[4])
+#agtDecision(mod,mod.agtList[4])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[4].deposit)
+#
+#simUtil(mod,mod.agtList[5])
+#agtDecision(mod,mod.agtList[5])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[5].deposit)
+
 bargain(mod)
 #println("Deposits")
 endows=[]
@@ -63,8 +99,8 @@ for agt in mod.agtList
 end
 println(endows)
 println(deposits)
-println(sum(endows.===0))
-println(sum(deposits.===1000))
+#println(sum(endows.===0))
+#println(sum(deposits.===1000))
 
 function tstModelGen(arg)
 
