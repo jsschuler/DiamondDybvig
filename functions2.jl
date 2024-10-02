@@ -122,9 +122,9 @@ function agtSim(mod::Model,agt::Agent)
     agtArray=repeat([agt],mod.depth)
     #println(agtArray)
     #println(typeof(agtArray))
-    #Folds.map(agtSimRound,modArray,agtArray)
+    Folds.map(agtSimRound,modArray,agtArray)
     #println("Running Agent Simulation")
-    agtSimRound.(modArray,agtArray)
+    #agtSimRound.(modArray,agtArray)
 end
 
 # now, we need a function that calculates a vector of utilities from the simulation returns
@@ -197,14 +197,14 @@ function agtDecision(mod::Model,agt::Agent)
     # the agent finds the deposit with the highest expected utility
 
     bestDeposit=options[findmax(Util)[2]]
-    println("Best Deposit")
-    println(bestDeposit)
-    println("Best Utility")
-    println(Util[findmax(Util)[2]])
-    println("All Utils")
-    println(Util)
-    println("Vault")
-    println(mod.theBank.vault)
+    #println("Best Deposit")
+    #println(bestDeposit)
+    #println("Best Utility")
+    #println(Util[findmax(Util)[2]])
+    #println("All Utils")
+    #println(Util)
+    #println("Vault")
+    #println(mod.theBank.vault)
     agt.deposit=bestDeposit
     agt.endow=origEndow-agt.deposit
     # now reset vault

@@ -32,23 +32,23 @@ mod=Model(
     .1,
     .75,
     100,
-    .25,
+    .01,
     1000,
-    0.5,
+    1.0,
     .5,
     1000,
     sample(1:100000,1)[1],
     Bank(0),
     "k"
 )
-for j in 1:10
+for j in 1:1000
     agtGen(mod::Model)
 end
 deposits=Int64[]
 for agt in mod.agtList
-    agt.deposit=agt.endow
+    agt.deposit=agt.endow-100
     push!(deposits,agt.deposit)
-    agt.endow=0
+    agt.endow=100
 end
 mod.theBank=Bank(sum(deposits))
 # now, let's simulate the first agent's first round
@@ -88,6 +88,8 @@ mod.theBank=Bank(sum(deposits))
 #println(mod.agtList[5].deposit)
 
 bargain(mod)
+println("Vault")
+println(mod.theBank.vault)
 #println("Deposits")
 endows=[]
 deposits=[]
@@ -101,6 +103,10 @@ println(endows)
 println(deposits)
 #println(sum(endows.===0))
 #println(sum(deposits.===1000))
+result=modelRun(mod)
+println(mod.theBank.vault)
+println(result)
+
 
 function tstModelGen(arg)
 
