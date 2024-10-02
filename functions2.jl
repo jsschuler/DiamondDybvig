@@ -222,7 +222,8 @@ function bargain(mod::Model)
     while true
         for i  in 1:length(mod.agtList)
             #println("Decisions!")
-            #println(agtDecision(mod,mod.agtList[i]))
+            agtDecision(mod,mod.agtList[i])
+            #println()
             ultiRound[i]=mod.agtList[i].deposit
         end
         #println("Arrays")

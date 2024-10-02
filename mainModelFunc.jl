@@ -52,8 +52,8 @@ for agt in mod.agtList
 end
 mod.theBank=Bank(sum(deposits))
 # now, let's simulate the first agent's first round
-#simUtil(mod,mod.agtList[1])
-#agtDecision(mod,mod.agtList[1])
+simUtil(mod,mod.agtList[1])
+agtDecision(mod,mod.agtList[1])
 #println("Vault")
 #println(mod.theBank.vault)
 #println("Deposit")
@@ -86,6 +86,14 @@ mod.theBank=Bank(sum(deposits))
 #println(mod.theBank.vault)
 #println("Deposit")
 #println(mod.agtList[5].deposit)
+#
+#simUtil(mod,mod.agtList[6])
+#agtDecision(mod,mod.agtList[6])
+#println("Vault")
+#println(mod.theBank.vault)
+#println("Deposit")
+#println(mod.agtList[6].deposit)
+
 
 bargain(mod)
 println("Vault")
@@ -103,9 +111,9 @@ println(endows)
 println(deposits)
 #println(sum(endows.===0))
 #println(sum(deposits.===1000))
-result=modelRun(mod)
-println(mod.theBank.vault)
-println(result)
+#result=modelRun(mod)
+#println(mod.theBank.vault)
+#println(result)
 
 
 function tstModelGen(arg)
