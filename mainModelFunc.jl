@@ -111,9 +111,9 @@ println(endows)
 println(deposits)
 #println(sum(endows.===0))
 #println(sum(deposits.===1000))
-#result=modelRun(mod)
-#println(mod.theBank.vault)
-#println(result)
+result=modelRun(mod)
+println(mod.theBank.vault)
+println(result)
 
 
 function tstModelGen(arg)
@@ -125,11 +125,11 @@ function tstModelGen(arg)
         .1,
         .1,
         1000,
-        .25,
+        .01,
         1000,
         0.0,
         1000,
-        .5,
+        .05,
         1000,
         sample(1:100000,1)[1],
         Bank(0),
