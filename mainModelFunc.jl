@@ -29,19 +29,19 @@ mod=Model(
     0, 
     Agent[],
     10000,
-    .1,
-    .75,
+    .15,
+    .25,
     100,
-    .01,
+    .25,
     1000,
     1.0,
-    .5,
+    .25,
     1000,
     sample(1:100000,1)[1],
     Bank(0),
     "k"
 )
-for j in 1:1000
+for j in 1:100
     agtGen(mod::Model)
 end
 deposits=Int64[]
