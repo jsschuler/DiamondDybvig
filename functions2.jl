@@ -20,6 +20,7 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     mod.theBank=Bank(sum(deposits))
     return mod
 end
+# now we need a function that generates a "study", that is generates a series of models with certain fixed parameters
 
 
 # a utility function that takes an agent object and an quantity

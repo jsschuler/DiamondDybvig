@@ -32,3 +32,9 @@ mutable struct Model
     theBank::Bank
     key::String
 end
+# we need a struct for a study. We are optimizing parameters p, and exogP to give the agents ratEx. All other parameters are fixed for a given "study" 
+struct Study
+    insur::Float64
+    prod::Float64
+    riskAversion::Float64
+end
