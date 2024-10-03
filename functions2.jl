@@ -7,20 +7,6 @@
 
 # Important: CLEARLY DISTINGUISH functions operating on main model agents vs those operating on the cloned simulation agents
 
-# we want a function that generates the model 
-function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
-    seed::Int64=sample(1:100000000,1)[1]
-    mod=Model(0,Agent[],1000,insur,prod,100,exogP,riskAversion,p,1000,seed,theBank(0),"run-"*string(now())*"-"*string(seed))
-    for agt in mod.agtList
-        agt.deposit=agt.endow-100
-        agt.endow=100
-    end
-    bargain(mod)
-    agtList=filter!(x-> x.deposit !=0,agtList)
-    mod.theBank=Bank(sum(deposits))
-    return mod
-end
-# now we need a function that generates a "study", that is generates a series of models with certain fixed parameters
 
 
 # a utility function that takes an agent object and an quantity
@@ -313,6 +299,25 @@ function withdrawDecision(mod::Model,agt::Agent)
     return(Bool[bankrupt,retVal])
 end
 
+# we want a function that generates the model 
+function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
+    seed::Int64=sample(1:100000000,1)[1]
+    mod=Model(0,Agent[],1000,insur,prod,100,exogP,riskAversion,p,1000,seed,theBank(0),"run-"*string(now())*"-"*string(seed))
+    for i in 1:1000
+        agtGen(mod)
+    end
+    
+    for agt in mod.agtList
+        agt.deposit=agt.endow-100
+        agt.endow=100
+    end
+    bargain(mod)
+    agtList=filter!(x-> x.deposit !=0,agtList)
+    mod.theBank=Bank(sum(deposits))
+    return mod
+end
+# now we need a function that generates a "study", that is generates a series of models with certain fixed parameters
+
 
 function modelRun(mod::Model)
     # this is the main model function.
@@ -360,3 +365,22 @@ function modelRun(mod::Model)
     return (bankrupt,withdrawalsCount)
 end
 
+function modelRunProc(mod::Model)
+    res=modelRun(mod::Model)
+    if res[1]
+        outW=1000
+    else
+        outP=res[2]
+    end
+    return outP 
+end
+
+# now, we need a function to define a study
+function studyGen(insur::Float64,prod::Float64,riskAversion::Float64)
+    return Study(insur,prod,riskAversion)
+end
+
+# now, the optimization function takes a study and finds the ratEx configuration for the study
+function RunStudy(study::Study)
+    
+end
