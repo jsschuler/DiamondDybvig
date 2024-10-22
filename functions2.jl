@@ -376,9 +376,22 @@ function modelRunProc(mod::Model)
 end
 
 # now, we need a function to define a study
-function studyGen(insur::Float64,prod::Float64,riskAversion::Float64)
-    return Study(insur,prod,riskAversion)
+function studyGen(insur::Float64,prod::Float64,riskAversion::Float64,exogP::Float64)
+    return Study(insur,prod,riskAversion,exogP)
 end
+
+# now a function for a single run
+
+function studyStep(study::Study,withDrawProb::Float64)
+    modResults=Int64[]
+    for t in 1:100
+        # generate model
+        mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
+        push!(modResults,modelRun(mod))
+    end
+    return 
+end
+
 
 # now, the optimization function takes a study and finds the ratEx configuration for the study
 function RunStudy(study::Study)
