@@ -302,7 +302,7 @@ end
 # we want a function that generates the model 
 function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
     seed::Int64=sample(1:100000000,1)[1]
-    mod=Model(0,Agent[],1000,insur,prod,100,exogP,riskAversion,p,1000,seed,theBank(0),"run-"*string(now())*"-"*string(seed))
+    mod=Model(0,Array{Agent}[],1000,insur,prod,100,exogP,endow,riskAversion,p,1000,seed,Bank(0),"run-"*string(now())*"-"*string(seed))
     for i in 1:1000
         agtGen(mod)
     end
@@ -312,7 +312,7 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
         agt.endow=100
     end
     bargain(mod)
-    agtList=filter!(x-> x.deposit !=0,agtList)
+    mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
     mod.theBank=Bank(sum(deposits))
     return mod
 end
@@ -406,14 +406,15 @@ function RunStudy(study::Study)
 
     function optimGen(study::Study)
         function outFunc(params)
+            println("parameter")
             println(params[:subjP])
             return studyStep(study,params[:subjP])
         end
         return outFunc
     end
     optim=optimGen(study)
-    println("Check")
-    println(collect(methods(optim)))
+    #println("Check")
+    #println(collect(methods(optim)))
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
