@@ -401,16 +401,19 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:x,.001,.001, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.0,0.01, 1.0)
     )
 
-    def optimGen(study::Study)
-        def outFunc(withDrawProb::Float64)
-            return(studyStep(study,withDrawProb))
+    function optimGen(study::Study)
+        function outFunc(params)
+            println(params[:subjP])
+            return studyStep(study,params[:subjP])
         end
         return outFunc
     end
     optim=optimGen(study)
+    println("Check")
+    println(collect(methods(optim)))
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
