@@ -313,6 +313,10 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     end
     bargain(mod)
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
+    deposits=Int64[]
+    for agt in mod.agtList
+        push!(deposits,agt.deposit)
+    end
     mod.theBank=Bank(sum(deposits))
     return mod
 end
