@@ -389,11 +389,31 @@ function studyStep(study::Study,withDrawProb::Float64)
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
         push!(modResults,modelRun(mod))
     end
-    return 
+    results=modelRunProc.(modResults)
+    # now, calculate the expected withdrawals
+    expWD=repeat([floor(Int64,1000*withDrawProb)],1000)
+    divergence=(expWD./1000).*(expWD./results)
+    return sum(divergence)
 end
 
 
 # now, the optimization function takes a study and finds the ratEx configuration for the study
 function RunStudy(study::Study)
-    
+    # define the space
+    space = Dict(
+    :subjP => HP.QuantUniform(:x,.001,.001, 1.0)
+    )
+
+    def optimGen(study::Study)
+        def outFunc(withDrawProb::Float64)
+            return(studyStep(study,withDrawProb))
+        end
+        return outFunc
+    end
+    optim=optimGen(study)
+    best = fmin(
+    optim, # The function to be optimised.
+    space,         # The space over which the optimisation should take place.
+    200          # The number of iterations to take.
+    )
 end
