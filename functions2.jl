@@ -391,7 +391,7 @@ function studyStep(study::Study,withDrawProb::Float64)
     for t in 1:100
         # generate model
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
-        push!(modResults,modelRun(mod))
+        push!(modResults,modelRun(mod)[2])
     end
     results=modelRunProc.(modResults)
     # now, calculate the expected withdrawals
