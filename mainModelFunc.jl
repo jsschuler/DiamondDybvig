@@ -31,4 +31,4 @@ include("functions2.jl")
 #println(chk)
 
 chk=studyStep(tstStudy,.05)
-print(tstStudy)
+print(chk)
