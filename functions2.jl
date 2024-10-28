@@ -424,4 +424,5 @@ function RunStudy(study::Study)
     space,         # The space over which the optimisation should take place.
     200          # The number of iterations to take.
     )
+    return best
 end
