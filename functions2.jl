@@ -149,12 +149,12 @@ function simUtil(mod::Model,agt::Agent)
     retMean=mean(returns)
     retMin=minimum(returns)
     retMax=maximum(returns)
-    #println("Average Return")
-    #println(retMean)
-    #println("Min Return")
-    #println(retMin)
-    #println("Max Return")
-    #println(retMax)
+    println("Average Return")
+    println(retMean)
+    println("Min Return")
+    println(retMin)
+    println("Max Return")
+    println(retMax)
     return utilVec
 end
 
@@ -187,6 +187,7 @@ function agtDecision(mod::Model,agt::Agent)
         totUtil::Float64
         push!(Util,totUtil)
         #println("Utility")
+        #println(opt)
         #println(totUtil)
     end
     # now find the highest utility option
@@ -224,8 +225,9 @@ function bargain(mod::Model)
     while true
         for i  in 1:length(mod.agtList)
             #println("Decisions!")
+            #println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
-            #println()
+            #println(mod.agtList[i].deposit)
             ultiRound[i]=mod.agtList[i].deposit
         end
         #println("Arrays")
@@ -303,16 +305,23 @@ end
 function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
     seed::Int64=sample(1:100000000,1)[1]
     mod=Model(0,Array{Agent}[],1000,insur,prod,100,exogP,endow,riskAversion,p,1000,seed,Bank(0),"run-"*string(now())*"-"*string(seed))
+    #println("Generating Agents")
     for i in 1:1000
         agtGen(mod)
     end
-    
+    #println(length(mod.agtList))
     for agt in mod.agtList
         agt.deposit=agt.endow-100
         agt.endow=100
     end
     bargain(mod)
+    for agt in mod.agtList
+        println(agt.deposit)
+    end
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
+    #println("TST")
+    #println(length(mod.agtList))
+    
     deposits=Int64[]
     for agt in mod.agtList
         push!(deposits,agt.deposit)
@@ -326,12 +335,14 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
-    #println("P")
-    #println(mod.exogP)
+    println("P")
+    println(mod.exogP)
+    println(length(mod.agtList))
     univBinom=Binomial(length(mod.agtList),mod.exogP)
     withdrawals=rand(univBinom,1)[1]
-    #println("withdrawals exogenous")
-    #println(withdrawals)
+    println("withdrawals exogenous")
+    println(withdrawals)
+    #println(length(withdrawals))
     agtWithdraw=sample(mod.agtList,withdrawals,replace=false)
     bankrupt=false
     bankrupt::Bool
@@ -405,7 +416,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.0,0.01, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.2,0.01, 1.0)
     )
 
     function optimGen(study::Study)
