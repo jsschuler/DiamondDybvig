@@ -60,6 +60,9 @@ function agtSimRound(mod::Model,agt::Agent)
 
     myBinom=Binomial(length(participatingAgts),agt.p)
     withdrawals=rand(myBinom,1)[1]
+    #println("Withdrawals")
+    #println(withdrawals)
+    #println(mod.theBank.vault)
     agtWithDraw=sample(participatingAgts,withdrawals,replace=false)
     # is the current agent among those who withdrew?
     # copy the vault so as not to change it
@@ -149,12 +152,12 @@ function simUtil(mod::Model,agt::Agent)
     retMean=mean(returns)
     retMin=minimum(returns)
     retMax=maximum(returns)
-    println("Average Return")
-    println(retMean)
-    println("Min Return")
-    println(retMin)
-    println("Max Return")
-    println(retMax)
+    #println("Average Return")
+    #println(retMean)
+    #println("Min Return")
+    #println(retMin)
+    #println("Max Return")
+    #println(retMax)
     return utilVec
 end
 
@@ -314,6 +317,13 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
         agt.deposit=agt.endow-100
         agt.endow=100
     end
+    deposits=Int64[]
+    for agt in mod.agtList
+        push!(deposits,agt.deposit)
+    end
+    mod.theBank=Bank(sum(deposits))
+    #println("Pre-Bargain")
+    #println(mod.theBank.vault)
     bargain(mod)
     for agt in mod.agtList
         println(agt.deposit)
@@ -321,12 +331,12 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
     #println("TST")
     #println(length(mod.agtList))
-    
     deposits=Int64[]
     for agt in mod.agtList
         push!(deposits,agt.deposit)
     end
     mod.theBank=Bank(sum(deposits))
+
     return mod
 end
 # now we need a function that generates a "study", that is generates a series of models with certain fixed parameters
@@ -335,13 +345,13 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
-    println("P")
-    println(mod.exogP)
-    println(length(mod.agtList))
+    #println("P")
+    #println(mod.exogP)
+    #println(length(mod.agtList))
     univBinom=Binomial(length(mod.agtList),mod.exogP)
     withdrawals=rand(univBinom,1)[1]
-    println("withdrawals exogenous")
-    println(withdrawals)
+    #println("withdrawals exogenous")
+    #println(withdrawals)
     #println(length(withdrawals))
     agtWithdraw=sample(mod.agtList,withdrawals,replace=false)
     bankrupt=false
