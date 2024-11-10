@@ -417,7 +417,7 @@ function studyStep(study::Study,withDrawProb::Float64)
         push!(modResults,modelRun(mod)[2])
     end
     #results=modelRunProc.(modResults)
-    results=Folds.map(modelRunProc,modResults)
+    results=Folds.map(modelRunProc,modResults,mode=Folds.Distributed())
     #Array{Float64,1}
     # now, calculate the expected withdrawals
     expWD=repeat([floor(Int64,1000*withDrawProb)],1000)
