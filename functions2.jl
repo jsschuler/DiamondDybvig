@@ -127,9 +127,11 @@ function agtSim(mod::Model,agt::Agent)
     agtArray=repeat([agt],mod.depth)
     #println(agtArray)
     #println(typeof(agtArray))
-    Folds.map(agtSimRound,modArray,agtArray)
+    # now use folds later for the tuning verions
+    #Folds.map(agtSimRound,modArray,agtArray)
+    
     #println("Running Agent Simulation")
-    #agtSimRound.(modArray,agtArray)
+    agtSimRound.(modArray,agtArray)
 end
 
 # now, we need a function that calculates a vector of utilities from the simulation returns
@@ -144,9 +146,9 @@ function simUtil(mod::Model,agt::Agent)
     #println(typeof(returns))
     #println(returns)
     #println(aFunc(1000))
-    #utilVec=map(aFunc,returns)
-    utilVec=Folds.map(aFunc,returns)
-    utilVec::Array{Float64,1}
+    utilVec::Array{Float64,1}=map(aFunc,returns)
+    #utilVec=Folds.map(aFunc,returns)
+    
     #println("Returns")
     #println(returns)
     retMean=mean(returns)
@@ -414,7 +416,9 @@ function studyStep(study::Study,withDrawProb::Float64)
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
         push!(modResults,modelRun(mod)[2])
     end
-    results=modelRunProc.(modResults)
+    #results=modelRunProc.(modResults)
+    results=Folds.map(modelRunProc,modResults)
+    #Array{Float64,1}
     # now, calculate the expected withdrawals
     expWD=repeat([floor(Int64,1000*withDrawProb)],1000)
     divergence=(expWD./1000).*(expWD./results)
