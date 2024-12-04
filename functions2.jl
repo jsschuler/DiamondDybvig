@@ -395,9 +395,9 @@ end
 function modelRunProc(arg)
     #println(arg)
     if arg[1]
-        outW=50
+        outP=1.0
     else
-        outP=arg[2]
+        outP=arg[2]/50
     end
     return outP 
 end
@@ -430,7 +430,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.0,0.01, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.0, 1.0,.1)
     )
 
     function optimGen(study::Study)
@@ -438,6 +438,7 @@ function RunStudy(study::Study)
             println("parameter")
             println(params[:subjP])
             return studyStep(study,params[:subjP])
+            #return -params[:subjP]^2
             
         end
         return outFunc
@@ -449,7 +450,7 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    5          # The number of iterations to take.
+    20          # The number of iterations to take.
     )
     return best
 end
