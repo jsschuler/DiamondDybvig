@@ -311,7 +311,7 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     seed::Int64=sample(1:100000000,1)[1]
     mod=Model(0,Array{Agent}[],1000,insur,prod,100,exogP,endow,riskAversion,p,1000,seed,Bank(0),"run-"*string(now())*"-"*string(seed))
     #println("Generating Agents")
-    for i in 1:1000
+    for i in 1:50
         agtGen(mod)
     end
     #println(length(mod.agtList))
@@ -327,9 +327,9 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     #println("Pre-Bargain")
     #println(mod.theBank.vault)
     bargain(mod)
-    for agt in mod.agtList
-        println(agt.deposit)
-    end
+    #for agt in mod.agtList
+    #    println(agt.deposit)
+    #end
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
     #println("TST")
     #println(length(mod.agtList))
@@ -392,12 +392,12 @@ function modelRun(mod::Model)
     return (bankrupt,withdrawalsCount)
 end
 
-function modelRunProc(mod::Model)
-    res=modelRun(mod::Model)
-    if res[1]
-        outW=1000
+function modelRunProc(arg)
+    #println(arg)
+    if arg[1]
+        outW=50
     else
-        outP=res[2]
+        outP=arg[2]
     end
     return outP 
 end
@@ -410,18 +410,18 @@ end
 # now a function for a single run
 
 function studyStep(study::Study,withDrawProb::Float64)
-    modResults=Int64[]
+    modResults=[]
     for t in 1:100
         # generate model
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
-        push!(modResults,modelRun(mod)[2])
+        push!(modResults,modelRun(mod))
     end
-    #results=modelRunProc.(modResults)
-    results=Folds.map(modelRunProc,modResults,mode=Folds.Distributed())
+    results=modelRunProc.(modResults)
+    #results=Folds.map(modelRunProc,modResults,mode=Folds.Distributed())
     #Array{Float64,1}
     # now, calculate the expected withdrawals
-    expWD=repeat([floor(Int64,1000*withDrawProb)],1000)
-    divergence=(expWD./1000).*(expWD./results)
+    expWD=repeat([floor(Int64,50*withDrawProb)],100)
+    divergence=(expWD./100).*(expWD./results)
     return sum(divergence)
 end
 
@@ -430,7 +430,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.2,0.01, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.0,0.01, 1.0)
     )
 
     function optimGen(study::Study)
@@ -438,16 +438,18 @@ function RunStudy(study::Study)
             println("parameter")
             println(params[:subjP])
             return studyStep(study,params[:subjP])
+            
         end
         return outFunc
     end
     optim=optimGen(study)
-    #println("Check")
-    #println(collect(methods(optim)))
+    println("Check")
+    println(collect(methods(optim)))
+    println(params)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    200          # The number of iterations to take.
+    5          # The number of iterations to take.
     )
     return best
 end
