@@ -421,7 +421,9 @@ function studyStep(study::Study,withDrawProb::Float64)
     #Array{Float64,1}
     # now, calculate the expected withdrawals
     expWD=repeat([floor(Int64,50*withDrawProb)],100)
-    divergence=(expWD./100).*(expWD./results)
+    divergence=(expWD./50).*(expWD./results)
+    println("Divergence")
+    println(sum(divergence))
     return sum(divergence)
 end
 
