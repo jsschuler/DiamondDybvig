@@ -389,7 +389,7 @@ function modelRun(mod::Model)
             cond=any(withdrawing)
         end
     end
-    println((bankrupt,withdrawalsCount+1))
+    #println((bankrupt,withdrawalsCount+1))
     return (bankrupt,withdrawalsCount)
 end
 
