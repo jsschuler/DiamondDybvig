@@ -435,7 +435,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.0, 1.0,.1)
+    :subjP => HP.QuantUniform(:subjP,0.1, .9,.1)
     )
 
     function optimGen(study::Study)
