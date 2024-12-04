@@ -389,6 +389,7 @@ function modelRun(mod::Model)
             cond=any(withdrawing)
         end
     end
+    println((bankrupt,withdrawalsCount+1))
     return (bankrupt,withdrawalsCount)
 end
 
@@ -423,6 +424,8 @@ function studyStep(study::Study,withDrawProb::Float64)
     expWD=repeat([floor(Int64,50*withDrawProb)],100)
     divergence=(expWD./50).*(expWD./results)
     println("Divergence")
+    println(divergence)
+    println(expWD./results)
     println(sum(divergence))
     return sum(divergence)
 end

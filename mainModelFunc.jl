@@ -27,8 +27,10 @@ include("functions2.jl")
 
 # now, the agent has to have a probability that it will have to withdraw ex ante.
 tstStudy=studyGen(.3,.4,1.0,.05)
-chk=RunStudy(tstStudy)
-println(chk)
+#chk=RunStudy(tstStudy)
+#println(chk)
+
+studyStep(tstStudy,0.0)
 
 #chk=studyStep(tstStudy,.05)
 #print(chk)
