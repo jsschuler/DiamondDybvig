@@ -57,8 +57,9 @@ function agtSimRound(mod::Model,agt::Agent)
             push!(participatingAgts,agt)
         end
     end
-    println("Participating Agents")
-    println(length(participatingAgts))
+    #println("Participating Agents")
+    #println(length(participatingAgts))
+    #println(agt.p)
 
     myBinom=Binomial(length(participatingAgts),agt.p)
     withdrawals=rand(myBinom,1)[1]
