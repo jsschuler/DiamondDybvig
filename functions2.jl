@@ -435,7 +435,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.1, .9,.1)
+    :subjP => HP.QuantUniform(:subjP,0.1, .9,.025)
     )
 
     function optimGen(study::Study)
@@ -455,7 +455,7 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    20          # The number of iterations to take.
+    50          # The number of iterations to take.
     )
     return best
 end
