@@ -57,6 +57,8 @@ function agtSimRound(mod::Model,agt::Agent)
             push!(participatingAgts,agt)
         end
     end
+    println("Participating Agents")
+    println(length(participatingAgts))
 
     myBinom=Binomial(length(participatingAgts),agt.p)
     withdrawals=rand(myBinom,1)[1]
@@ -347,9 +349,9 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
-    #println("P")
-    #println(mod.exogP)
-    #println(length(mod.agtList))
+    println("P")
+    println(mod.exogP)
+    println(length(mod.agtList))
     univBinom=Binomial(length(mod.agtList),mod.exogP)
     withdrawals=rand(univBinom,1)[1]
     #println("withdrawals exogenous")
@@ -389,7 +391,7 @@ function modelRun(mod::Model)
             cond=any(withdrawing)
         end
     end
-    #println((bankrupt,withdrawalsCount+1))
+    println((bankrupt,withdrawalsCount))
     return (bankrupt,withdrawalsCount)
 end
 
@@ -455,7 +457,7 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    50          # The number of iterations to take.
+    5          # The number of iterations to take.
     )
     return best
 end
