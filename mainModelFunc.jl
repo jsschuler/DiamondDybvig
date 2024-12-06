@@ -8,7 +8,7 @@ using Dates
 using JLD2
 using TreeParzen
 using StatsBase
-
+using Plots
 include("objects2.jl")
 include("functions2.jl")
 
@@ -27,11 +27,11 @@ include("functions2.jl")
 # generate test model
 
 # now, the agent has to have a probability that it will have to withdraw ex ante.
-tstStudy=studyGen(.3,.4,1.0,.1)
-chk=RunStudy(tstStudy)
-println(chk)
+tstStudy=studyGen(.1,.4,1.0,.1)
+#chk=RunStudy(tstStudy)
+#println(chk)
 
-#studyStep(tstStudy,0.1)
+studyStep(tstStudy,0.2)
 
 #chk=studyStep(tstStudy,.05)
 #print(chk)

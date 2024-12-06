@@ -134,7 +134,11 @@ function agtSim(mod::Model,agt::Agent)
     #Folds.map(agtSimRound,modArray,agtArray)
     
     #println("Running Agent Simulation")
-    agtSimRound.(modArray,agtArray)
+    simRes=agtSimRound.(modArray,agtArray)
+    h = histogram(simRes, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
+    savefig(h, "../plots/returns"*string(agt.idx)*".png")
+
+    return simRes
 end
 
 # now, we need a function that calculates a vector of utilities from the simulation returns
@@ -163,6 +167,8 @@ function simUtil(mod::Model,agt::Agent)
     #println(retMin)
     #println("Max Return")
     #println(retMax)
+    h = histogram(utilVec, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
+    savefig(h, "../plots/utility"*string(agt.idx)*".png")
     return utilVec
 end
 
@@ -232,10 +238,10 @@ function bargain(mod::Model)
     penultiRound=ultiRound
     while true
         for i  in 1:length(mod.agtList)
-            #println("Decisions!")
-            #println(mod.agtList[i].deposit)
+            println("Decisions!")
+            println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
-            #println(mod.agtList[i].deposit)
+            println(mod.agtList[i].deposit)
             ultiRound[i]=mod.agtList[i].deposit
         end
         #println("Arrays")
@@ -285,12 +291,16 @@ function withdrawDecision(mod::Model,agt::Agent)
 
 
     wPayout::Float64=aFunc(min(mod.theBank.vault,round(Int64,(1+mod.insur)*agt.deposit)))
+    
+    utilDist=
+
     totUtil::Float64=sum(simUtil(mod,agt))/mod.depth
     retVal::Bool=false
     bankrupt::Bool=false
-
+    
     withdrawDesire=(wPayout > totUtil)::Bool
     if  withdrawDesire
+        println("Agent "*string(agt.idx)*" withdraws")
         bankrupt=withdraw(mod,agt,false)
         retVal=true
     end
@@ -317,7 +327,8 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     for i in 1:50
         agtGen(mod)
     end
-    #println(length(mod.agtList))
+    println("Pre-Bargain")
+    println(length(mod.agtList))
     for agt in mod.agtList
         agt.deposit=agt.endow-100
         agt.endow=100
@@ -334,8 +345,8 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     #    println(agt.deposit)
     #end
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
-    #println("TST")
-    #println(length(mod.agtList))
+    println("Post-Bargain")
+    println(length(mod.agtList))
     deposits=Int64[]
     for agt in mod.agtList
         push!(deposits,agt.deposit)
@@ -350,11 +361,11 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
-    println("Seed")
-    println(mod.seed)
-    println("P")
-    println(mod.exogP)
-    println(length(mod.agtList))
+    #println("Seed")
+    #println(mod.seed)
+    #println("P")
+    #println(mod.exogP)
+    #println(length(mod.agtList))
     univBinom=Binomial(length(mod.agtList),mod.exogP)
     withdrawals=rand(univBinom,1)[1]
     #println("withdrawals exogenous")
@@ -394,7 +405,7 @@ function modelRun(mod::Model)
             cond=any(withdrawing)
         end
     end
-    println((bankrupt,withdrawalsCount))
+    println((bankrupt,withdrawalsCount,mod.theBank.vault,length(mod.agtList),mod.agtList[1].p))
     return (bankrupt,withdrawalsCount)
 end
 
@@ -417,7 +428,8 @@ end
 
 function studyStep(study::Study,withDrawProb::Float64)
     modResults=[]
-    for t in 1:100
+    for t in 1:1
+    #for t in 1:100
         # generate model
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
         push!(modResults,modelRun(mod))
@@ -473,7 +485,7 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    5          # The number of iterations to take.
+    25          # The number of iterations to take.
     )
     return best
 end
