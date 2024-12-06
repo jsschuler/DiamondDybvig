@@ -7,6 +7,7 @@ using DataFrames
 using Dates
 using JLD2
 using TreeParzen
+using StatsBase
 
 include("objects2.jl")
 include("functions2.jl")
@@ -30,7 +31,7 @@ tstStudy=studyGen(.3,.4,1.0,.1)
 chk=RunStudy(tstStudy)
 println(chk)
 
-studyStep(tstStudy,0.1)
+#studyStep(tstStudy,0.1)
 
 #chk=studyStep(tstStudy,.05)
 #print(chk)

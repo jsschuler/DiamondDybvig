@@ -350,6 +350,8 @@ end
 function modelRun(mod::Model)
     # this is the main model function.
     # first, we find out which agents are type 1
+    println("Seed")
+    println(mod.seed)
     println("P")
     println(mod.exogP)
     println(length(mod.agtList))
@@ -398,11 +400,11 @@ end
 
 function modelRunProc(arg)
     #println(arg)
-    if arg[1]
-        outP=1.0
-    else
-        outP=arg[2]/50
-    end
+    #if arg[1]
+    #    outP=1.0
+    #else
+    outP=arg[2]
+    #end
     return outP 
 end
 
@@ -423,14 +425,27 @@ function studyStep(study::Study,withDrawProb::Float64)
     results=modelRunProc.(modResults)
     #results=Folds.map(modelRunProc,modResults,mode=Folds.Distributed())
     #Array{Float64,1}
-    # now, calculate the expected withdrawals
-    expWD=repeat([floor(Int64,50*withDrawProb)],100)
-    divergence=(expWD./50).*(expWD./results)
-    println("Divergence")
-    println(divergence)
-    println(expWD./results)
-    println(sum(divergence))
-    return sum(divergence)
+    # now, the actual withdrawals
+    resDict=countmap(results)
+    probDict=Dict()
+    for d in 0:50
+        if d in keys(resDict)
+            probDict[d]=resDict[d]/50
+        else
+            probDict[d]=0
+        end
+    end
+    # now define theoretical distribution 
+    theoDist=Binomial(50,withDrawProb)
+    theoDict=Dict()
+    for d in 0:50
+        theoDict[d]=pdf(theoDist,d)
+    end
+    divVec=[]
+    for d in 0:50
+        push!(divVec,probDict[d]*log(probDict[d])/theoDict[d])
+    end
+    return sum(divVec)
 end
 
 
