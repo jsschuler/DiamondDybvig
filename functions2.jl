@@ -238,7 +238,7 @@ function bargain(mod::Model)
     penultiRound=ultiRound
     while true
         for i  in 1:length(mod.agtList)
-            println("Decisions!")
+            println("Decision of agent"* string(mod.agtList[i].idx))
             println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
             println(mod.agtList[i].deposit)

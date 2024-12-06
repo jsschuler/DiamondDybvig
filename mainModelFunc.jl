@@ -31,7 +31,7 @@ tstStudy=studyGen(.1,.4,1.0,.1)
 #chk=RunStudy(tstStudy)
 #println(chk)
 
-studyStep(tstStudy,0.2)
+studyStep(tstStudy,0.5)
 
 #chk=studyStep(tstStudy,.05)
 #print(chk)
