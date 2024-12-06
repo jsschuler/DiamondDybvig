@@ -242,7 +242,7 @@ function bargain(mod::Model)
     while true
         t=t+1
         for i  in 1:length(mod.agtList)
-            println("Decision of agent "* string(mod.agtList[i].idx))
+            println("Decision of agent "* string(mod.agtList[i].idx)*" at t="*string(t))
             println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
             println(mod.agtList[i].deposit)
@@ -255,7 +255,7 @@ function bargain(mod::Model)
         if all(penultiRound.==ultiRound)
             break
         end
-        penultiRound=ultiRound
+        penultiRound=deepcopy(ultiRound)
     end
 end
 
@@ -328,7 +328,7 @@ end
 # we want a function that generates the model 
 function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskAversion::Float64,p::Float64)
     seed::Int64=sample(1:100000000,1)[1]
-    mod=Model(0,Array{Agent}[],1000,insur,prod,100,exogP,endow,riskAversion,p,1000,seed,Bank(0),"run-"*string(now())*"-"*string(seed))
+    mod=Model(0,Array{Agent}[],10000,insur,prod,100,exogP,endow,riskAversion,p,1000,seed,Bank(0),"run-"*string(now())*"-"*string(seed))
     #println("Generating Agents")
     for i in 1:50
         agtGen(mod)
