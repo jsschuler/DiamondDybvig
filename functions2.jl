@@ -235,21 +235,27 @@ function bargain(mod::Model)
     # the past two rounds. If no agent changes in two rounds, we break
     penultiRound=similar(mod.agtList,Int64)
     ultiRound=similar(mod.agtList,Int64)
-    penultiRound=ultiRound
+    for i in 1:length(mod.agtList)
+        ultiRound[i]=mod.agtList[i].deposit
+    end
+    t=0
     while true
+        t=t+1
         for i  in 1:length(mod.agtList)
-            println("Decision of agent"* string(mod.agtList[i].idx))
+            println("Decision of agent "* string(mod.agtList[i].idx))
             println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
             println(mod.agtList[i].deposit)
             ultiRound[i]=mod.agtList[i].deposit
         end
-        #println("Arrays")
-        #println(penultiRound)
-        #println(ultiRound)
+        println("Arrays")
+        println(t)
+        println(penultiRound)
+        println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
+        penultiRound=ultiRound
     end
 end
 
