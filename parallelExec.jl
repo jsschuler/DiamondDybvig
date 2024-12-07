@@ -1,3 +1,9 @@
+##############################################################################################################
+#                    Diamond-Dybvig with Rational Expectations                                               #
+#                        December 2024                                                                       #
+#                        John S. Schuler                                                                     #
+#                                                                                                            #
+##############################################################################################################
 using Distributed
 @everywhere using Folds
 @everywhere using Distributions
@@ -8,11 +14,11 @@ using Distributed
 @everywhere using JLD2
 @everywhere using TreeParzen
 @everywhere using StatsBase
-@everywhere using Plots
+#@everywhere using Plots
 using IterTools
 @everywhere include("objects2.jl")
 @everywhere include("functions2.jl")
-
+cores=8
 # Step 1: generate the parameter space
 #studyGen(insur::Float64,prod::Float64,riskAversion::Float64,exogP::Float64)
 
@@ -29,11 +35,33 @@ exogProb=.05:.05:.3
 
 combos=vec(collect(product(payOut,prodPrem,riskAver,exogProb)))
 
-cores=8
+
 
 coreDict=Dict()
 resultDict=Dict()
 for j in 2:min(cores)
     coreDict[j]=nothing
     resultDict[j]=nothing
+end
+complete=false
+for c in keys(coreDict)
+    if isnothing(coreDict[c])
+        # if the core dictionary is nothing, we send it the parameters
+        #println("Sending Parameters")
+        println("core")
+        println(c)
+        if length(combos) > 0
+            nextIter=pop!(combos)
+            @spawnat c study=studyGen(nextIter[1],nextIter[2],nextIter[3],nextIter[4])
+            coreDict[c]=@spawnat c RunStudy()
+            #println(resultDict==:complete)
+        else
+            complete=true
+        end
+    elseif isReady(coreDict[c])
+        #println("Ready")
+        coreDict[c]=nothing
+    elseif complete
+        break
+    end
 end

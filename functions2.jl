@@ -41,7 +41,7 @@ function agtGen(mod::Model)
               prob=[mod.p]
               )
               #println(typeof(key))
-              CSV.write("../Data6/agents"*mod.key*".csv", df,header = false,append=true)
+              #CSV.write("../Data6/agents"*mod.key*".csv", df,header = false,append=true)
 
 
 end
@@ -279,7 +279,7 @@ function withdraw(mod::Model,agt::Agent,exog::Bool)
               exogW=[exog],
               Failure=[retVal]
               )
-              CSV.write("../Data6/withdrawals"*mod.key*".csv", df,header = false,append=true)
+              #CSV.write("../Data6/withdrawals"*mod.key*".csv", df,header = false,append=true)
 
     return(retVal)
 end
@@ -320,7 +320,7 @@ function withdrawDecision(mod::Model,agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              CSV.write("../Data6/activations"*mod.key*".csv", df,header = false,append=true)
+              #CSV.write("../Data6/activations"*mod.key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end
@@ -491,7 +491,15 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    25          # The number of iterations to take.
+    5          # The number of iterations to take.
     )
-    return best
+    df=DataFrame(currKey=[mod.key],
+    insur=study.insur,
+    prod=study.prod,
+    riskAversion=study.riskAversion,
+    exogP=study.exogP,
+    optima=best
+    )
+    CSV.write("../Data6/optima.csv", df,header = false,append=true)
+    return :complete
 end
