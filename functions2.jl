@@ -135,8 +135,8 @@ function agtSim(mod::Model,agt::Agent)
     
     #println("Running Agent Simulation")
     simRes=agtSimRound.(modArray,agtArray)
-    h = histogram(simRes, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
-    savefig(h, "../plots/returns"*string(agt.idx)*".png")
+    #h = histogram(simRes, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
+    #savefig(h, "../plots/returns"*string(agt.idx)*".png")
 
     return simRes
 end
@@ -167,8 +167,8 @@ function simUtil(mod::Model,agt::Agent)
     #println(retMin)
     #println("Max Return")
     #println(retMax)
-    h = histogram(utilVec, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
-    savefig(h, "../plots/utility"*string(agt.idx)*".png")
+    #h = histogram(utilVec, bins=20, xlabel="Return", ylabel="Frequency", title="Return Distribution for Agent "* string(agt.idx), legend=false)
+    #savefig(h, "../plots/utility"*string(agt.idx)*".png")
     return utilVec
 end
 
@@ -242,16 +242,16 @@ function bargain(mod::Model)
     while true
         t=t+1
         for i  in 1:length(mod.agtList)
-            println("Decision of agent "* string(mod.agtList[i].idx)*" at t="*string(t))
-            println(mod.agtList[i].deposit)
+            #println("Decision of agent "* string(mod.agtList[i].idx)*" at t="*string(t))
+            #println(mod.agtList[i].deposit)
             agtDecision(mod,mod.agtList[i])
-            println(mod.agtList[i].deposit)
+            #println(mod.agtList[i].deposit)
             ultiRound[i]=mod.agtList[i].deposit
         end
-        println("Arrays")
-        println(t)
-        println(penultiRound)
-        println(ultiRound)
+        #println("Arrays")
+        #println(t)
+        #println(penultiRound)
+        #println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
@@ -306,7 +306,7 @@ function withdrawDecision(mod::Model,agt::Agent)
     
     withdrawDesire=(wPayout > totUtil)::Bool
     if  withdrawDesire
-        println("Agent "*string(agt.idx)*" withdraws")
+        #println("Agent "*string(agt.idx)*" withdraws")
         bankrupt=withdraw(mod,agt,false)
         retVal=true
     end
@@ -333,8 +333,8 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     for i in 1:50
         agtGen(mod)
     end
-    println("Pre-Bargain")
-    println(length(mod.agtList))
+    #println("Pre-Bargain")
+    #println(length(mod.agtList))
     for agt in mod.agtList
         agt.deposit=agt.endow-100
         agt.endow=100
@@ -351,8 +351,8 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     #    println(agt.deposit)
     #end
     mod.agtList=filter!(x-> x.deposit !=0,mod.agtList)
-    println("Post-Bargain")
-    println(length(mod.agtList))
+    #println("Post-Bargain")
+    #println(length(mod.agtList))
     deposits=Int64[]
     for agt in mod.agtList
         push!(deposits,agt.deposit)
@@ -411,7 +411,7 @@ function modelRun(mod::Model)
             cond=any(withdrawing)
         end
     end
-    println((bankrupt,withdrawalsCount,mod.theBank.vault,length(mod.agtList),mod.agtList[1].p))
+    #println((bankrupt,withdrawalsCount,mod.theBank.vault,length(mod.agtList),mod.agtList[1].p))
     return (bankrupt,withdrawalsCount)
 end
 
@@ -476,8 +476,8 @@ function RunStudy(study::Study)
 
     function optimGen(study::Study)
         function outFunc(params)
-            println("parameter")
-            println(params[:subjP])
+            #println("parameter")
+            #println(params[:subjP])
             return studyStep(study,params[:subjP])
             #return -params[:subjP]^2
             
@@ -485,9 +485,9 @@ function RunStudy(study::Study)
         return outFunc
     end
     optim=optimGen(study)
-    println("Check")
-    println(collect(methods(optim)))
-    println(params)
+    #println("Check")
+    #println(collect(methods(optim)))
+    #println(params)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
