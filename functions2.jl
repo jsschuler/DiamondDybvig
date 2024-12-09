@@ -248,10 +248,10 @@ function bargain(mod::Model)
             #println(mod.agtList[i].deposit)
             ultiRound[i]=mod.agtList[i].deposit
         end
-        #println("Arrays")
-        #println(t)
-        #println(penultiRound)
-        #println(ultiRound)
+        println("Arrays")
+        println(t)
+        println(penultiRound)
+        println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
@@ -491,14 +491,14 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    5          # The number of iterations to take.
+    2          # The number of iterations to take.
     )
-    df=DataFrame(currKey=[mod.key],
+    df=DataFrame(
     insur=study.insur,
     prod=study.prod,
     riskAversion=study.riskAversion,
     exogP=study.exogP,
-    optima=best
+    optima=best[:subjP]
     )
     CSV.write("../Data6/optima.csv", df,header = false,append=true)
     return :complete

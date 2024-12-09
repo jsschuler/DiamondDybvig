@@ -18,7 +18,14 @@ using Distributed
 using IterTools
 @everywhere include("objects2.jl")
 @everywhere include("functions2.jl")
-cores=8
+cores=Sys.CPU_THREADS
+addprocs(cores-1)
+# generate data directory if it does not exist
+if !isdir("../Data6")
+    mkdir("../Data6")
+end
+
+
 # Step 1: generate the parameter space
 #studyGen(insur::Float64,prod::Float64,riskAversion::Float64,exogP::Float64)
 
@@ -39,7 +46,7 @@ combos=vec(collect(product(payOut,prodPrem,riskAver,exogProb)))
 
 coreDict=Dict()
 resultDict=Dict()
-for j in 2:min(cores)
+for j in 2:cores
     coreDict[j]=nothing
     resultDict[j]=nothing
 end
@@ -47,7 +54,7 @@ complete=false
 for c in keys(coreDict)
     if isnothing(coreDict[c])
         # if the core dictionary is nothing, we send it the parameters
-        #println("Sending Parameters")
+        println("Sending Parameters")
         println("core")
         println(c)
         if length(combos) > 0
