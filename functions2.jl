@@ -229,36 +229,56 @@ function agtDecision(mod::Model,agt::Agent)
     return agt.deposit
 end
 
+# replace the old bargain function with one that constrains all 
+# agents to have the same deposit
+
+#function bargain(mod::Model)
+#    # now, we keep track of each agent's preferred deposit for
+#    # the past two rounds. If no agent changes in two rounds, we break
+#    penultiRound=similar(mod.agtList,Int64)
+#    ultiRound=similar(mod.agtList,Int64)
+#    for i in 1:length(mod.agtList)
+#        ultiRound[i]=mod.agtList[i].deposit
+#    end
+#    t=0
+#    while true
+#        t=t+1
+#        for i  in 1:length(mod.agtList)
+#            #println("Decision of agent "* string(mod.agtList[i].idx)*" at t="*string(t))
+#            #println(mod.agtList[i].deposit)
+#            agtDecision(mod,mod.agtList[i])
+#            #println(mod.agtList[i].deposit)
+#            ultiRound[i]=mod.agtList[i].deposit
+#        end
+#        println("Arrays")
+#        println(t)
+#        println(penultiRound)
+#        println(ultiRound)
+#        if all(penultiRound.==ultiRound)
+#            break
+#        end
+#        penultiRound=deepcopy(ultiRound)
+#    end
+#end
 
 function bargain(mod::Model)
-    # now, we keep track of each agent's preferred deposit for
-    # the past two rounds. If no agent changes in two rounds, we break
-    penultiRound=similar(mod.agtList,Int64)
-    ultiRound=similar(mod.agtList,Int64)
-    for i in 1:length(mod.agtList)
-        ultiRound[i]=mod.agtList[i].deposit
+    depVec=collect(0:100:(mod.agtList[1].endow + mod.agtList[1].deposit))
+    utilVec=[]
+    for amnt in 0:100:(mod.agtList[1].endow + mod.agtList[1].deposit)
+        for agt in mod.agtList
+            agt.deposit=amnt
+            agt.endow=1000-amnt
+        end
+        push!(utilVec,sum(simUtil(mod,mod.agtList[1]))/mod.depth)
     end
-    t=0
-    while true
-        t=t+1
-        for i  in 1:length(mod.agtList)
-            #println("Decision of agent "* string(mod.agtList[i].idx)*" at t="*string(t))
-            #println(mod.agtList[i].deposit)
-            agtDecision(mod,mod.agtList[i])
-            #println(mod.agtList[i].deposit)
-            ultiRound[i]=mod.agtList[i].deposit
-        end
-        println("Arrays")
-        println(t)
-        println(penultiRound)
-        println(ultiRound)
-        if all(penultiRound.==ultiRound)
-            break
-        end
-        penultiRound=deepcopy(ultiRound)
+    # now find the max
+    bestDeposit=depVec[findmax(utilVec)[2]]
+    for agt in mod.agtList
+        agt.deposit=bestDeposit
+        agt.endow=1000-bestDeposit
+        #println(agt.deposit)
     end
 end
-
 
 
 function withdraw(mod::Model,agt::Agent,exog::Bool)
@@ -347,6 +367,8 @@ function modelGen(insur::Float64,prod::Float64,exogP::Float64,endow::Int64,riskA
     #println("Pre-Bargain")
     #println(mod.theBank.vault)
     bargain(mod)
+    #println("Deposit")
+    #println(mod.agtList[1].deposit)
     #for agt in mod.agtList
     #    println(agt.deposit)
     #end
@@ -434,8 +456,8 @@ end
 
 function studyStep(study::Study,withDrawProb::Float64)
     modResults=[]
-    for t in 1:1
-    #for t in 1:100
+    #for t in 1:1
+    for t in 1:100
         # generate model
         mod=modelGen(study.insur,study.prod,study.exogP,1000,study.riskAversion,withDrawProb)
         push!(modResults,modelRun(mod))
@@ -471,7 +493,7 @@ end
 function RunStudy(study::Study)
     # define the space
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.1, .9,.025)
+    :subjP => HP.QuantUniform(:subjP,0.1, .4,.025)
     )
 
     function optimGen(study::Study)
@@ -491,7 +513,7 @@ function RunStudy(study::Study)
     best = fmin(
     optim, # The function to be optimised.
     space,         # The space over which the optimisation should take place.
-    2          # The number of iterations to take.
+    50          # The number of iterations to take.
     )
     df=DataFrame(
     insur=study.insur,
