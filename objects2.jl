@@ -34,7 +34,7 @@ mutable struct Model
 end
 # we need a struct for a study. We are optimizing parameter p to give the agents ratEx. All other parameters are fixed for a given "study" 
 struct Study
-    idk::String
+    key::String
     insur::Float64
     prod::Float64
     riskAversion::Float64
