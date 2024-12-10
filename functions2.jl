@@ -37,13 +37,13 @@ function agtGen(mod::Model)
     # withdrawal probability matches the single subjective probability for all agents 
     # and so the agents have ratEx!
     df=DataFrame(currKey=[mod.key],
-              agt=[mod.agtTicker],
-              endow=[mod.endow],
-              risk=[mod.riskAversion],
-              prob=[mod.p]
-              )
-              #println(typeof(key))
-              #CSV.write("../Data6/agents"*mod.key*".csv", df,header = false,append=true)
+            agt=[mod.agtTicker],
+            endow=[mod.endow],
+            risk=[mod.riskAversion],
+            prob=[mod.p]
+            )
+    #println(typeof(key))
+    #CSV.write("../Data6/agents"*mod.key*".csv", df,header = false,append=true)
 
 
 end
@@ -342,7 +342,7 @@ function withdrawDecision(mod::Model,agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              #CSV.write("../Data6/activations"*mod.key*".csv", df,header = false,append=true)
+    #CSV.write("../Data6/activations"*mod.key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end
@@ -487,6 +487,12 @@ function studyStep(study::Study,withDrawProb::Float64)
     for d in 0:50
         push!(divVec,probDict[d]*log(probDict[d])/theoDict[d])
     end
+    println("Infor")
+    println(results)
+    println(resDict)
+    println(probDict)
+    println(theoDict)
+    println(divVec)
     kl=sum(divVec)
     df=DataFrame(
         key=study.key,
