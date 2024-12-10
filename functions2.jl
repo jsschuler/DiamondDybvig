@@ -7,7 +7,9 @@
 
 # Important: CLEARLY DISTINGUISH functions operating on main model agents vs those operating on the cloned simulation agents
 
-
+function keyGen()
+    return string(now())*"-"*lpad(rand(DiscreteUniform(0,100000000),1)[1],9,"0")
+end
 
 # a utility function that takes an agent object and an quantity
 function util(agt::Agent,x::Int64)
@@ -449,7 +451,7 @@ end
 
 # now, we need a function to define a study
 function studyGen(insur::Float64,prod::Float64,riskAversion::Float64,exogP::Float64)
-    return Study(insur,prod,riskAversion,exogP)
+    return Study(keyGen(),insur,prod,riskAversion,exogP)
 end
 
 # now a function for a single run
@@ -485,7 +487,16 @@ function studyStep(study::Study,withDrawProb::Float64)
     for d in 0:50
         push!(divVec,probDict[d]*log(probDict[d])/theoDict[d])
     end
-    return sum(divVec)
+    kl=sum(divVec)
+    df=DataFrame(
+        key=study.key,
+        div=kl,
+        mean=mean(results./50),
+        maxim=maximum(results./50),
+        minim=minimum(results./50)
+        )
+        CSV.write("../Data6/kl.csv", df,header = false,append=true)
+    return kl
 end
 
 
@@ -516,6 +527,7 @@ function RunStudy(study::Study)
     50          # The number of iterations to take.
     )
     df=DataFrame(
+    key=study.key,
     insur=study.insur,
     prod=study.prod,
     riskAversion=study.riskAversion,
