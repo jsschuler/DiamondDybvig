@@ -472,7 +472,7 @@ function studyStep(study::Study,withDrawProb::Float64)
     probDict=Dict()
     for d in 0:50
         if d in keys(resDict)
-            probDict[d]=resDict[d]/50
+            probDict[d]=resDict[d]
         else
             probDict[d]=0
         end
@@ -481,7 +481,7 @@ function studyStep(study::Study,withDrawProb::Float64)
     theoDist=Binomial(50,withDrawProb)
     theoDict=Dict()
     for d in 0:50
-        theoDict[d]=pdf(theoDist,d)
+        theoDict[d]=50*pdf(theoDist,d)
     end
     divVec=[]
     for d in 0:50
