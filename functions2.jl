@@ -453,7 +453,7 @@ end
 function studyGen(insur::Float64,prod::Float64,riskAversion::Float64,exogP::Float64)
     return Study(keyGen(),insur,prod,riskAversion,exogP)
 end
-
+ 
 # now a function for a single run
 
 function studyStep(study::Study,withDrawProb::Float64)
