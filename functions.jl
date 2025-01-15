@@ -156,7 +156,7 @@ function agtSim(agt)
     # this function applies the simulation in parallel
     global depth
     agtArray=repeat(Agent[agt],depth)
-    Folds.map(agtSimRound,agtArray,ex=ThreadsEx())
+    Folds.map(agtSimRound,agtArray,ex=ThreadedEx())
 end
 
 function simUtil(agt)
