@@ -244,10 +244,10 @@ function bargain()
             agtDecision(agtList[i])
             ultiRound[i]=agtList[i].deposit
         end
-        println(t)
-        println("Arrays")
-        println(penultiRound)
-        println(ultiRound)
+        #println(t)
+        #println("Arrays")
+        #println(penultiRound)
+        #println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
