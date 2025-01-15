@@ -26,7 +26,7 @@ function agtGen(endow::Int64,riskAversion::Float64,p::Float64)
               prob=[p]
               )
               #println(typeof(key))
-              CSV.write("Data6/agents"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/agents"*key*".csv", df,header = false,append=true)
 
 
 end
@@ -235,18 +235,19 @@ end
 function bargain()
     # now, we keep track of each agent's preferred deposit for
     # the past two rounds. If no agent changes in two rounds, we break
-    penultiRound=similar(agtList,Int64)
     ultiRound=similar(agtList,Int64)
-
-    penultiRound=ultiRound
+    t=0
     while true
+        penultiRound=deepcopy(ultiRound)
+        t=t+1
         for i  in 1:length(agtList)
             agtDecision(agtList[i])
             ultiRound[i]=agtList[i].deposit
         end
-        #println("Arrays")
-        #println(penultiRound)
-        #println(ultiRound)
+        println(t)
+        println("Arrays")
+        println(penultiRound)
+        println(ultiRound)
         if all(penultiRound.==ultiRound)
             break
         end
@@ -275,7 +276,7 @@ function withdraw(agt::Agent,exog::Bool)
               exogW=[exog],
               Failure=[retVal]
               )
-              CSV.write("Data6/withdrawals"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/withdrawals"*key*".csv", df,header = false,append=true)
 
     return(retVal)
 end
@@ -327,7 +328,7 @@ function withdrawDecision(agt::Agent)
               wdUtil=[wPayout],
               stUtil=[totUtil]
               )
-              CSV.write("Data6/activations"*key*".csv", df,header = false,append=true)
+              CSV.write("../Data6/activations"*key*".csv", df,header = false,append=true)
 
     return(Bool[bankrupt,retVal])
 end

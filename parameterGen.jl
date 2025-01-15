@@ -18,9 +18,9 @@ using CSV
 # INVESTMENT TECH PREMIUM OVER INSURANCE PAYOUT
 
 # we want to have multiple runs from the same initialization
-initSize=100
+initSize=1
 # and to run this a certain number of times
-initRun=10
+initRun=1
 sampSize=initSize*initRun
 agtCnts=10:10:100
 payOut=Array(.05:.05:.5)
@@ -85,6 +85,6 @@ ctrlFrame[!,"fixRisk"]=col5
 ctrlFrame[!,"fixEndow"]=col6
 ctrlFrame[!,"fixProb"]=col7
 ctrlFrame[!,"complete"]=repeat([false],sampSize)
-println(ctrlFrame[1:10,:])
+println(ctrlFrame)
 save_object("runCtrl_"*Dates.format(now(),"yyyymmddHHMMSS")*".jld2",ctrlFrame)
-CSV.write("Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)
+CSV.write("../Data6/modRun"*ctrlFrame[1,:key]*".csv",ctrlFrame)
