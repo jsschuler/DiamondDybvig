@@ -18,9 +18,9 @@ using CSV
 # INVESTMENT TECH PREMIUM OVER INSURANCE PAYOUT
 
 # we want to have multiple runs from the same initialization
-initSize=1
+initSize=10
 # and to run this a certain number of times
-initRun=1
+initRun=100
 sampSize=initSize*initRun
 agtCnts=10:10:100
 payOut=Array(.05:.05:.5)
