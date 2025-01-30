@@ -80,7 +80,7 @@ function roundSimul(mod::Model,decision::Bool)
         vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit),0)
         agtReturn=(1/(stillBanking+futureCount)).*vaultDistrib.*(1+mod.prod)
     else
-
+        # if the agent decides to withdraw, the agent decides to BE one of the 
     end
     
 
