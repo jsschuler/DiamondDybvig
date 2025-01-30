@@ -35,12 +35,16 @@ end
 
 # but first we need the function to generate a withdrawal count
 
-function withdrawalSamp(mod::Model)
+
+
+
+function roundSimul(mod::Model,decision::Bool)
+    # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
     stillBanking=length(mod.bankingList)
     # now generate 1000 uniform variates
     global depth
-    uVariates=rand(Uniform(),1)
+    uVariates=rand(Uniform(),depth)
     # now, calculate the probability distribution of withdrawals conditional on there being
     # at least the number of observed withdrawals
     global agtCnt
@@ -63,13 +67,21 @@ function withdrawalSamp(mod::Model)
         end
         push!(countVec,maxCount)
     end
-    return countVec[1]
-end
+    println(countVec)
+    println(maximum(countVec))
+    println(minimum(countVec))
+    println(mean(countVec))
+    # now get how many agents have yet to withdraw 
+    futureCount=countVec.-wdCount
+    println(futureCount)
+    # now, let's calculate the agent's return on the basis of a decision
+    currVault=mod.theBank.vault
+    if decision
+        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit),0)
+        agtReturn=(1/(stillBanking+futureCount)).*vaultDistrib.*(1+mod.prod)
+    else
 
-function roundSimul(mod::Model,decision::Bool)
-    # How many agents have withdrawn?
-    wdCount=withdrawalSamp(mod::Model)
-    withdrawals=sample(vcat(repeat(true,count),repeat([false],length(bankingList)-count) ),length(bankingList),replace=false)
+    end
     
 
 

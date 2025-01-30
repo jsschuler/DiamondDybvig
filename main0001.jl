@@ -8,9 +8,9 @@ include("function2.jl")
 
 tstMod=modelGen(1000,.2,.1,.2,.2,1.0)
 
-#for k in 1:30
-#    push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
-#end
+for k in 1:5
+    push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
+end
 println(length(tstMod.bankingList))
 println(length(tstMod.nonBankingList))
-roundSimul(tstMod)
+roundSimul(tstMod,false)
