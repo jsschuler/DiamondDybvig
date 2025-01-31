@@ -7,7 +7,10 @@ mutable struct Bank
     vault::Int64
 end
 
-mutable struct Model
+
+
+
+mutable struct Model <: ModBase
     nonBankingList::Array{Agent}
     bankingList::Array{Agent}
     endow::Int64
@@ -19,3 +22,17 @@ mutable struct Model
     riskAversion::Float64
     theBank::Bank
 end
+
+mutable struct SimModel <: ModBase
+    nonBankingList::Array{Agent}
+    bankingList::Array{Agent}
+    endow::Int64
+    deposit::Int64
+    objP::Float64
+    subjP::Float64
+    insur::Float64
+    prod::Float64
+    riskAversion::Float64
+    theBank::Bank
+end
+

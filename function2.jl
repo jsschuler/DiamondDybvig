@@ -138,7 +138,24 @@ function roundSimul(mod::Model,decision::Bool)
 
 end
 
+# we need a function to clone a model. 
 
+function clone(mod::Model)
+    return SimMod(mod.nonBankingList,
+                  mod.bankingList,
+                  mod.endow,
+                  mod.deposit,
+                  mod.objP,
+                  mod.subjP,
+                  mod.insur,
+                  mod.prod,
+                  mod.riskAversion,
+                  mod.theBank)
+
+function modRun(mod::SimModel)
+
+
+end
 
 # now the bargaining step
 # we constrain the agents to all have the same deposit
