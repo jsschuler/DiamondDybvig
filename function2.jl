@@ -36,12 +36,20 @@ end
 # but first we need the function to generate a withdrawal count
 
 
-
+function lineSpot(long::Int64)
+    return sample(1:long,1)[1]
+end
 
 function roundSimul(mod::Model,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
     stillBanking=length(mod.bankingList)
+    # now, if the agent has decided to withdraw, we adjust these by one
+    if decision
+        wdCount=wdCount+1
+        stillBanking=stillBanking-1
+    end
+
     # now generate 1000 uniform variates
     global depth
     uVariates=rand(Uniform(),depth)
@@ -77,10 +85,22 @@ function roundSimul(mod::Model,decision::Bool)
     # now, let's calculate the agent's return on the basis of a decision
     currVault=mod.theBank.vault
     if decision
-        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit),0)
-        agtReturn=(1/(stillBanking+futureCount)).*vaultDistrib.*(1+mod.prod)
+        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
+        agtReturn=(1/(stillBanking.+futureCount)).*vaultDistrib.*(1+mod.prod)
+        println("Returns")
+        println(agtReturn)
     else
-        # if the agent decides to withdraw, the agent decides to BE one of the 
+        # if the agent decides to withdraw, the agent decides to BE one of the withdrawing agents
+        # we guaranteed above that the agent always has a spot
+        # add the withdrawing agent to the withdrawal count
+        countVec=countVec.+1
+        # now, get the agent's place in line among those withdrawing
+        # and in turn, the number of agents 
+        priorWithdrawals=lineSpot.(countVec).-1
+        vaultDistrib= max.(currVault .- (1+mod.insur).*priorWithdrawals.*mod.deposit,0)
+        agtReturn=max.(min.(vaultDistrib,(1+mod.insur)*mod.deposit),0)
+        println("Returns")
+        println(agtReturn)
     end
     
 
