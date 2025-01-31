@@ -107,15 +107,15 @@ function roundSimul(mod::Model,decision::Bool)
         
         vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
         agtReturn=max.(min.(vaultDistrib,(1+mod.insur)*mod.deposit),0)
-        println("Withdrawing Returns")
-        println("Vaults")
-        println(maximum(vaultDistrib))
-        println(minimum(vaultDistrib))
-        println(mean(vaultDistrib))
-        println("Utils")
-        println(maximum(mUtil.(agtReturn)))
-        println(minimum(mUtil.(agtReturn)))
-        println(mean(mUtil.(agtReturn)))
+        #println("Withdrawing Returns")
+        #println("Vaults")
+        #println(maximum(vaultDistrib))
+        #println(minimum(vaultDistrib))
+        #println(mean(vaultDistrib))
+        #println("Utils")
+        #println(maximum(mUtil.(agtReturn)))
+        #println(minimum(mUtil.(agtReturn)))
+        #println(mean(mUtil.(agtReturn)))
         expReturn=mean(mUtil.(agtReturn))
     else
         priorWithdrawals=lineSpot.(countVec).-1
@@ -123,15 +123,15 @@ function roundSimul(mod::Model,decision::Bool)
         #println(vaultDistrib)
         agtReturn=((stillBanking.-futureCount).^(-1)) .* (vaultDistrib.*(1+mod.insur+ mod.prod))
         #println(vaultDistrib.*(1+mod.prod))
-        println("Staying Returns")
-        println("Vaults")
-        println(maximum(vaultDistrib))
-        println(minimum(vaultDistrib))
-        println(mean(vaultDistrib))
-        println("Utils")
-        println(maximum(mUtil.(agtReturn)))
-        println(minimum(mUtil.(agtReturn)))
-        println(mean(mUtil.(agtReturn)))
+        #println("Staying Returns")
+        #println("Vaults")
+        #println(maximum(vaultDistrib))
+        #println(minimum(vaultDistrib))
+        #println(mean(vaultDistrib))
+        #println("Utils")
+        #println(maximum(mUtil.(agtReturn)))
+        #println(minimum(mUtil.(agtReturn)))
+        #println(mean(mUtil.(agtReturn)))
         expReturn=mean(mUtil.(agtReturn))
     end
     return expReturn
@@ -143,8 +143,13 @@ end
 # now the bargaining step
 # we constrain the agents to all have the same deposit
 
-#function bargain(mod::Model)
-#end
+
+
+function bargain(mod::Model)
+    for dep in 0:10:mod.endow
+
+    end
+end
 
 # we need the withdrawal function
 

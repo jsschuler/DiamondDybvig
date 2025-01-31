@@ -23,7 +23,7 @@ end
 println("Initial Vault")
 println(tstMod.theBank.vault)
 
-for k in 1:15
+for k in 1:5
     push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
     tstMod.theBank.vault=tstMod.theBank.vault-(1+tstMod.insur)*tstMod.deposit
 end
