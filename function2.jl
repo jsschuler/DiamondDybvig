@@ -104,8 +104,8 @@ function roundSimul(mod::Model,decision::Bool)
         countVec=countVec.+1
         # now, get the agent's place in line among those withdrawing
         # and in turn, the number of agents 
-        priorWithdrawals=lineSpot.(countVec).-1
-        vaultDistrib= max.(currVault .- (1+mod.insur).*priorWithdrawals.*mod.deposit,0)
+        
+        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
         agtReturn=max.(min.(vaultDistrib,(1+mod.insur)*mod.deposit),0)
         println("Withdrawing Returns")
         println("Vaults")
@@ -118,7 +118,8 @@ function roundSimul(mod::Model,decision::Bool)
         println(mean(mUtil.(agtReturn)))
         expReturn=mean(mUtil.(agtReturn))
     else
-        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
+        priorWithdrawals=lineSpot.(countVec).-1
+        vaultDistrib= max.(currVault .- (1+mod.insur).*priorWithdrawals.*mod.deposit,0)
         #println(vaultDistrib)
         agtReturn=((stillBanking.-futureCount).^(-1)) .* (vaultDistrib.*(1+mod.insur+ mod.prod))
         #println(vaultDistrib.*(1+mod.prod))

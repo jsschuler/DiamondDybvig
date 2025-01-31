@@ -9,7 +9,7 @@ include("function2.jl")
 
 
 
-tstMod=modelGen(1000,.3,.1,.3,.1,1.0)
+tstMod=modelGen(1000,.05,.1,.3,.1,1.0)
 mUtil=modUtilGen(tstMod)
 
 
@@ -23,7 +23,7 @@ end
 println("Initial Vault")
 println(tstMod.theBank.vault)
 
-for k in 1:50
+for k in 1:15
     push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
     tstMod.theBank.vault=tstMod.theBank.vault-(1+tstMod.insur)*tstMod.deposit
 end
