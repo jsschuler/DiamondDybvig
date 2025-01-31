@@ -16,6 +16,6 @@ mutable struct Model
     subjP::Float64
     insur::Float64
     prod::Float64
-    riskAver::Float64
+    riskAversion::Float64
     theBank::Bank
 end

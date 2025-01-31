@@ -1,17 +1,25 @@
 # the functions file
 
-function util(mod::Model,x::Int64)
+function util(mod::Model,x::Float64)
     if x < 0
         x=0
     end
 
-    y=Float64(1+x)
+    y=1+x
     if mod.riskAversion==1.0
         return(log(y))
     else
         return((y^(1-mod.riskAversion))/(1-mod.riskAversion))
     end
 end
+
+function modUtilGen(mod::Model)
+    function tmpFunc(x::Float64)
+        return util(mod,x)
+    end
+    return tmpFunc
+end
+
 
 function agtGen(mod::Model)
     push!(mod.bankingList,Agent())
@@ -44,6 +52,10 @@ function roundSimul(mod::Model,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
     stillBanking=length(mod.bankingList)
+    println("Withdrawn")
+    println(wdCount)
+    println("Still Banking")
+    println(stillBanking)
     # now, if the agent has decided to withdraw, we adjust these by one
     if decision
         wdCount=wdCount+1
@@ -58,8 +70,8 @@ function roundSimul(mod::Model,decision::Bool)
     global agtCnt
     agtProb=Binomial(agtCnt,mod.subjP)
     cdfCond=Dict{Int64,Float64}()
-    #println("Prob")
-    #println(ccdf(agtProb,wdCount))
+    println("Prob")
+    println(ccdf(agtProb,wdCount))
     for t in wdCount:(wdCount+stillBanking)
         cdfCond[t]=(cdf(agtProb,t)-cdf(agtProb,wdCount))/ccdf(agtProb,wdCount)
     end
@@ -75,21 +87,17 @@ function roundSimul(mod::Model,decision::Bool)
         end
         push!(countVec,maxCount)
     end
-    println(countVec)
-    println(maximum(countVec))
-    println(minimum(countVec))
-    println(mean(countVec))
+    #println(countVec)
+    #println(maximum(countVec))
+    #println(minimum(countVec))
+    #println(mean(countVec))
     # now get how many agents have yet to withdraw 
     futureCount=countVec.-wdCount
-    println(futureCount)
+    #println("future")
+    #println(futureCount)
     # now, let's calculate the agent's return on the basis of a decision
     currVault=mod.theBank.vault
     if decision
-        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
-        agtReturn=(1/(stillBanking.+futureCount)).*vaultDistrib.*(1+mod.prod)
-        println("Returns")
-        println(agtReturn)
-    else
         # if the agent decides to withdraw, the agent decides to BE one of the withdrawing agents
         # we guaranteed above that the agent always has a spot
         # add the withdrawing agent to the withdrawal count
@@ -99,12 +107,33 @@ function roundSimul(mod::Model,decision::Bool)
         priorWithdrawals=lineSpot.(countVec).-1
         vaultDistrib= max.(currVault .- (1+mod.insur).*priorWithdrawals.*mod.deposit,0)
         agtReturn=max.(min.(vaultDistrib,(1+mod.insur)*mod.deposit),0)
-        println("Returns")
-        println(agtReturn)
+        println("Withdrawing Returns")
+        println("Vaults")
+        println(maximum(vaultDistrib))
+        println(minimum(vaultDistrib))
+        println(mean(vaultDistrib))
+        println("Utils")
+        println(maximum(mUtil.(agtReturn)))
+        println(minimum(mUtil.(agtReturn)))
+        println(mean(mUtil.(agtReturn)))
+        expReturn=mean(mUtil.(agtReturn))
+    else
+        vaultDistrib= max.(currVault .- (1+mod.insur).*futureCount.*mod.deposit,0)
+        #println(vaultDistrib)
+        agtReturn=((stillBanking.-futureCount).^(-1)) .* (vaultDistrib.*(1+mod.insur+ mod.prod))
+        #println(vaultDistrib.*(1+mod.prod))
+        println("Staying Returns")
+        println("Vaults")
+        println(maximum(vaultDistrib))
+        println(minimum(vaultDistrib))
+        println(mean(vaultDistrib))
+        println("Utils")
+        println(maximum(mUtil.(agtReturn)))
+        println(minimum(mUtil.(agtReturn)))
+        println(mean(mUtil.(agtReturn)))
+        expReturn=mean(mUtil.(agtReturn))
     end
-    
-
-
+    return expReturn
 
 end
 
