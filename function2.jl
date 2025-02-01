@@ -165,11 +165,11 @@ function payStream(mod::SimModel,k::Int64)
     else
         retVal=Int64[]
         for t in 1:k 
-            nextVal=max(min((1+mod.insur)*mod.deposit,vault),0)
+            nextVal=max(min((1+mod.insur)*mod.deposit,totVault),0)
             push!(retVal,nextVal)
-            mod.theBank.vault=max(mod.theBank.vault-(1+mod.insur)*mod.deposit,0)
+            totVault=max(totVault-(1+mod.insur)*mod.deposit,0)
         end
-        resid=((1/(agtCnt-k))*(1+mod.insur+mod.prod)*mod.theBank.vault)
+        resid=((1/(agtCnt-k))*(1+mod.insur+mod.prod)*totVault)
         for t in (k+1):agtCnt
             push!(retVal,resid)
         end
