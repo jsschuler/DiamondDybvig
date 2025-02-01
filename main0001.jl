@@ -23,19 +23,22 @@ end
 println("Initial Vault")
 println(tstMod.theBank.vault)
 
-for k in 1:5
-    push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
-    tstMod.theBank.vault=tstMod.theBank.vault-(1+tstMod.insur)*tstMod.deposit
-end
+#for k in 1:5
+#    push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
+#    tstMod.theBank.vault=tstMod.theBank.vault-(1+tstMod.insur)*tstMod.deposit
+#end
+#
+#println("Post Vault")
+#println(tstMod.theBank.vault)
+#
+#
+#
+#println(length(tstMod.bankingList))
+#println(length(tstMod.nonBankingList))
+#noWD=roundSimul(tstMod,false)
+#WD=roundSimul(tstMod,true)
+#println("Agent Stays Banking")
+#println(noWD > WD)
 
-println("Post Vault")
-println(tstMod.theBank.vault)
-
-
-
-println(length(tstMod.bankingList))
-println(length(tstMod.nonBankingList))
-noWD=roundSimul(tstMod,false)
-WD=roundSimul(tstMod,true)
-println("Agent Stays Banking")
-println(noWD > WD)
+tstClone=clone(tstMod)
+modRun(tstClone)

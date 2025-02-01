@@ -1,6 +1,6 @@
 # the functions file
 
-function util(mod::Model,x::Float64)
+function util(mod::ModBase,x::Float64)
     if x < 0
         x=0
     end
@@ -13,7 +13,7 @@ function util(mod::Model,x::Float64)
     end
 end
 
-function modUtilGen(mod::Model)
+function modUtilGen(mod::ModBase)
     function tmpFunc(x::Float64)
         return util(mod,x)
     end
@@ -52,10 +52,10 @@ function roundSimul(mod::Model,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
     stillBanking=length(mod.bankingList)
-    println("Withdrawn")
-    println(wdCount)
-    println("Still Banking")
-    println(stillBanking)
+    #println("Withdrawn")
+    #println(wdCount)
+    #println("Still Banking")
+    #println(stillBanking)
     # now, if the agent has decided to withdraw, we adjust these by one
     if decision
         wdCount=wdCount+1
@@ -70,8 +70,8 @@ function roundSimul(mod::Model,decision::Bool)
     global agtCnt
     agtProb=Binomial(agtCnt,mod.subjP)
     cdfCond=Dict{Int64,Float64}()
-    println("Prob")
-    println(ccdf(agtProb,wdCount))
+    #println("Prob")
+    #println(ccdf(agtProb,wdCount))
     for t in wdCount:(wdCount+stillBanking)
         cdfCond[t]=(cdf(agtProb,t)-cdf(agtProb,wdCount))/ccdf(agtProb,wdCount)
     end
@@ -141,19 +141,58 @@ end
 # we need a function to clone a model. 
 
 function clone(mod::Model)
-    return SimMod(mod.nonBankingList,
-                  mod.bankingList,
-                  mod.endow,
-                  mod.deposit,
-                  mod.objP,
-                  mod.subjP,
-                  mod.insur,
-                  mod.prod,
-                  mod.riskAversion,
-                  mod.theBank)
+    return SimModel(mod.nonBankingList,
+                    mod.bankingList,
+                    mod.endow,
+                    mod.deposit,
+                    mod.objP,
+                    mod.subjP,
+                    mod.insur,
+                    mod.prod,
+                    mod.riskAversion,
+                    mod.theBank)
+end
 
 function modRun(mod::SimModel)
+    global agtCnt
+    # now many type two agents are there
+    agtProb=Binomial(agtCnt,mod.subjP)
+    retMatVec=[]
+    for t in 0:agtCnt
+        retVec=Float64[]
+        ### THE index here vs above is inconsistent because we need a case where no agent withdraws earler. 
+        for j in 1:agtCnt
+            if j <= t
+                push!(retVec,max(0,min((1+mod.insur)*mod.deposit,mod.theBank.vault)))
+                mod.theBank.vault=mod.theBank.vault-(1+mod.insur)*mod.deposit
+            else
+                stillBanking=agtCnt-t
+                push!(retVec,max((1/stillBanking)*(1+mod.insur+mod.prod)*mod.theBank.vault,0))
+            end
+        end
+        push!(retMatVec,retVec)
+        # now perform the utility calculations
+    end
+    retVec=hcat(retMatVec...)
+    # each row of this matrix corresponts to a number of agents withdrawing.
+    println(size(retVec))
+    #println(retVec)
+    println(retVec[:,1])
+    println(retVec[:,2])
+    println(retVec[:,25])
+    uFunc=modUtilGen(mod)
+    uMat=uFunc.(retVec)
+    println(uMat[:,1])
+    println(uMat[:,2])
+    println(uMat[:,25])
+    # now as each row is a number of agents withdrawing
+    # we can take a weighted average weighted by a column of probabilities
+    # this will give us the represenative agent's von Neumann-Morgenstern Expected utility
+    
 
+    vnUtil=uMat * pdf.(agtProb,0:100)
+    println("Utilities")
+    println(vnUtil)
 
 end
 
@@ -164,13 +203,15 @@ end
 
 function bargain(mod::Model)
     for dep in 0:10:mod.endow
-
+        tmpMod=clone(mod)
+        tmpMod.deposit=dep
+        tmpMod.endow=mod.endow-dep
     end
 end
 
 # we need the withdrawal function
 
-function withdraw(mod::Model)
+function withdraw(mod::ModBase)
     pop!(mod.bankingList)
     mod.theBank.vault=max(mod.theBank.vault-(1+mod.insur)*mod.deposit,0)
 end

@@ -8,7 +8,7 @@ mutable struct Bank
 end
 
 
-
+abstract type ModBase end
 
 mutable struct Model <: ModBase
     nonBankingList::Array{Agent}
