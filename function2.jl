@@ -153,26 +153,44 @@ function clone(mod::Model)
                     mod.theBank)
 end
 
+# we need a function that gives the vector of payments where there have been k withdrawals
+
+function payStream(mod::SimModel,k::Int64)
+    global agtCnt
+    totVault=mod.theBank.vault
+    payouts=Int64[]
+    if k==0
+        paid=(1/agtCnt)*(1+mod.insur+mod.prod)*totVault
+        retVal=repeat([paid],agtCnt)
+    else
+        retVal=Int64[]
+        for t in 1:k 
+            nextVal=max(min((1+mod.insur)*mod.deposit,vault),0)
+            push!(retVal,nextVal)
+            mod.theBank.vault=max(mod.theBank.vault-(1+mod.insur)*mod.deposit,0)
+        end
+        resid=((1/(agtCnt-k))*(1+mod.insur+mod.prod)*mod.theBank.vault)
+        for t in (k+1):agtCnt
+            push!(retVal,resid)
+        end
+    end
+    return retVal
+end
+
+
 function modRun(mod::SimModel)
     global agtCnt
     # now many type two agents are there
     agtProb=Binomial(agtCnt,mod.subjP)
+    totVault=mod.theBank.vault
     retMatVec=[]
     for t in 0:agtCnt
-        retVec=Float64[]
-        ### THE index here vs above is inconsistent because we need a case where no agent withdraws earler. 
-        for j in 0:agtCnt
-            if j <= t
-                push!(retVec,max(0,min((1+mod.insur)*mod.deposit,mod.theBank.vault)))
-                mod.theBank.vault=mod.theBank.vault-(1+mod.insur)*mod.deposit
-            else
-                stillBanking=agtCnt-t
-                push!(retVec,max((1/stillBanking)*(1+mod.insur+mod.prod)*mod.theBank.vault,0))
-            end
+        for k in 0:t
+            
         end
-        push!(retMatVec,retVec)
-        # now perform the utility calculations
+        residual=
     end
+
     retVec=hcat(retMatVec...)
     # each row of this matrix corresponts to a number of agents withdrawing.
     println(size(retVec))
