@@ -161,7 +161,7 @@ function modRun(mod::SimModel)
     for t in 0:agtCnt
         retVec=Float64[]
         ### THE index here vs above is inconsistent because we need a case where no agent withdraws earler. 
-        for j in 1:agtCnt
+        for j in 0:agtCnt
             if j <= t
                 push!(retVec,max(0,min((1+mod.insur)*mod.deposit,mod.theBank.vault)))
                 mod.theBank.vault=mod.theBank.vault-(1+mod.insur)*mod.deposit
@@ -190,7 +190,9 @@ function modRun(mod::SimModel)
     # this will give us the represenative agent's von Neumann-Morgenstern Expected utility
     
 
-    vnUtil=uMat * pdf.(agtProb,0:100)
+    vnUtil=(uMat * repeat([1],101)) 
+    println(size(vnUtil))
+    println(size(pdf.(agtProb,0:100)))
     println("Utilities")
     println(vnUtil)
 
