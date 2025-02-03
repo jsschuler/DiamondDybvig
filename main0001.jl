@@ -40,5 +40,6 @@ println(tstMod.theBank.vault)
 #println("Agent Stays Banking")
 #println(noWD > WD)
 
-tstClone=clone(tstMod)
-modRun(tstClone)
+
+roundSimul(tstMod,false)
+roundSimul(tstMod,true)
