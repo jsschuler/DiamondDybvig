@@ -91,31 +91,42 @@ function roundSimul(mod::Model,decision::Bool)
     println(futureCount)
     # now, let's calculate the agent's return on the basis of a decision
     if decision
+        payVec=[]
         # if the agent decides to withdraw, the agent decides to BE one of the withdrawing agents
         # we guaranteed above that the agent always has a spot
         # add the withdrawing agent to the withdrawal count
         futureCount=futureCount.+1
         # now, get the agent's place in line among those withdrawing
         # and in turn, the number of agents 
-        
+        for future in futureCount
+            simMod=clone(mod)
+            payOuts=Float64[]
+            while future > 0
+                future=future-1
+                push!(payOuts,withdraw(simMod))
+            end
+            push!(payVec,payOuts)
+        end
     else
-        countVec=countVec.+1
-        #priorWithdrawals=lineSpot.(countVec).-1
-        #vaultDistrib= max.(currVault .- (1+mod.insur).*priorWithdrawals.*mod.deposit,0)
-        #println(vaultDistrib)
-        #agtReturn=((stillBanking.-futureCount).^(-1)) .* (vaultDistrib.*(1+mod.insur+ mod.prod))
-        #println(vaultDistrib.*(1+mod.prod))
-        #println("Staying Returns")
-        #println("Vaults")
-        #println(maximum(vaultDistrib))
-        #println(minimum(vaultDistrib))
-        #println(mean(vaultDistrib))
-        #println("Utils")
-        #println(maximum(mUtil.(agtReturn)))
-        #println(minimum(mUtil.(agtReturn)))
-        #println(mean(mUtil.(agtReturn)))
-        #expReturn=mean(mUtil.(agtReturn))
+        payVec=[]
+        for future in futureCount
+            #println("Hello")
+            simMod=clone(mod)
+            payOuts=Float64[]
+            while future > 0
+                future=future-1
+                # Withdraw other agents
+                withdraw(simMod)
+            end
+            push!(payOuts,payOut(simMod))
+        end
+        push!(payVec,payOuts)
+        
     end
+    payMat=hcat(payVec...)
+    println(size(payMat))
+    println(payMat[1,:])
+    println(payMat[10,:])
     #return expReturn
 
 end
@@ -155,7 +166,17 @@ end
 # we need the withdrawal function
 
 function withdraw(mod::ModBase)
-    pop!(mod.bankingList)
-    mod.theBank.vault=max(mod.theBank.vault-(1+mod.insur)*mod.deposit,0)
+    if length(mod.bankingList) > 0
+        pop!(mod.bankingList)
+        withdrawn=min((1+mod.insur)*mod.deposit,mod.theBank.vault)
+        mod.theBank.vault=max(mod.theBank.vault-withdrawn,0)
+    else
+        withdrawn=0
+    end
+    return withdrawn
+
 end
 
+function payOut(mod::ModBase)
+    return (1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
+end
