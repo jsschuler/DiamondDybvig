@@ -88,10 +88,11 @@ function roundSimul(mod::Model,decision::Bool)
     # now get how many agents have yet to withdraw 
     futureCount=countVec.-wdCount
     println("future")
-    println(futureCount)
+    println(length(futureCount))
     # now, let's calculate the agent's return on the basis of a decision
+    payVec=[]
     if decision
-        payVec=[]
+        
         # if the agent decides to withdraw, the agent decides to BE one of the withdrawing agents
         # we guaranteed above that the agent always has a spot
         # add the withdrawing agent to the withdrawal count
@@ -100,33 +101,30 @@ function roundSimul(mod::Model,decision::Bool)
         # and in turn, the number of agents 
         for future in futureCount
             simMod=clone(mod)
-            payOuts=Float64[]
             while future > 0
                 future=future-1
-                push!(payOuts,withdraw(simMod))
+                push!(payVec,withdraw(simMod))
             end
-            push!(payVec,payOuts)
+            
         end
     else
-        payVec=[]
         for future in futureCount
             #println("Hello")
             simMod=clone(mod)
-            payOuts=Float64[]
             while future > 0
                 future=future-1
                 # Withdraw other agents
                 withdraw(simMod)
             end
-            push!(payOuts,payOut(simMod))
+            push!(payVec,payOut(simMod))
         end
-        push!(payVec,payOuts)
+        
         
     end
-    payMat=hcat(payVec...)
-    println(size(payMat))
-    println(payMat[1,:])
-    println(payMat[10,:])
+    println("Pays")
+    println(payVec)
+    #println(payMat[1,:])
+    #println(payMat[10,:])
     #return expReturn
 
 end
@@ -178,5 +176,7 @@ function withdraw(mod::ModBase)
 end
 
 function payOut(mod::ModBase)
+    #println("Banking")
+    #println(length(mod.bankingList))
     return (1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
 end

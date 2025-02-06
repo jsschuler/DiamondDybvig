@@ -22,7 +22,7 @@ for k in 1:length(tstMod.bankingList)
 end
 println("Initial Vault")
 println(tstMod.theBank.vault)
-
+println(tstMod.bankingList)
 #for k in 1:5
 #    push!(tstMod.nonBankingList,pop!(tstMod.bankingList))
 #    tstMod.theBank.vault=tstMod.theBank.vault-(1+tstMod.insur)*tstMod.deposit
@@ -41,5 +41,5 @@ println(tstMod.theBank.vault)
 #println(noWD > WD)
 
 
-roundSimul(tstMod,false)
-roundSimul(tstMod,true)
+#roundSimul(tstMod,false)
+#roundSimul(tstMod,true)
