@@ -2,14 +2,14 @@ using Distributions
 using Random
 
 agtCnt=100
-depth=100000
+depth=10000
 include("objects.jl")
 include("function2.jl")
 
 
 
 
-tstMod=modelGen(1000,.25,.1,.3,.1,1.0)
+tstMod=modelGen(1000,.25,.2,.5,.1,1.0)
 mUtil=modUtilGen(tstMod)
 
 
@@ -44,4 +44,4 @@ println(length(tstMod.bankingList))
 #roundSimul(tstMod,false)
 #roundSimul(tstMod,true)
 
-runMain(tstMod)
+println(runMain(tstMod))

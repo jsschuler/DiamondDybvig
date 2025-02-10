@@ -135,8 +135,8 @@ function roundSimul(mod::Model,decision::Bool)
     #println(payMat[10,:])
     # now calculate the expected utility
     uFunc=modUtilGen(mod)
-    
-    
+    println("Debug")
+    println(payVec)
     return sum(uFunc.(payVec))*(1/length(payVec))
 
 end
@@ -186,6 +186,7 @@ function withdraw(mod::ModBase)
     else
         withdrawn=0
     end
+    println(withdrawn)
     return withdrawn
 
 end
@@ -204,7 +205,39 @@ function runMain(mod::Model)
     X=Binomial(agtCnt,mod.objP)
     exogWD=rand(X,1)[1]
     wOrder=sample(vcat(repeat([true],exogWD),repeat([false],agtCnt-exogWD)),agtCnt,replace=false)
-    println(wOrder)
-    
-
+    #println(wOrder)
+    # now each agent decides whether or not to withdraw
+    for j in 1:length(wOrder)
+        println(j) 
+        # is the agent withdrawing 
+        if wOrder[j]
+            withdraw(mod)
+            println("Exogenous Withdrawal")
+        else
+            wUtil=roundSimul(mod,true)
+            sUtil=roundSimul(mod,false)
+            println(wUtil)
+            println(sUtil)
+            if wUtil > sUtil
+                withdraw(mod)
+                println("Endogenous Withdrawal")
+            end
+        end
+        if mod.theBank.vault <= 0
+            break
+        end
+    end
+    # pull in global agent count
+    global agtCnt
+    withdrawalCnt=length(mod.bankingList)
+    # now report the number of withdrawals and the run condition
+    # if there has been a run, we consider all agents to have withdrawn 
+    runCond::Bool=false
+    if mod.theBank.vault <= 0
+        runCond=true
+        withdrawalCnt=agtCnt
+    end
+    # now what is the return?
+    paid=payOut(mod)
+    return (runCond,withdrawalCnt,paid)
 end
