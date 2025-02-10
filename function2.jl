@@ -132,10 +132,10 @@ function roundSimul(mod::Model,decision::Bool)
             #println(length(simMod.bankingList))
             paid=payOut(simMod)
             if isnan(paid)
-                #println("Flag")
-                #println(simMod.bankingList)
-                #println(simMod.theBank.vault)
-                #println(future)
+                println("Flag")
+                println(simMod.bankingList)
+                println(simMod.theBank.vault)
+                println(future)
             end
             push!(payVec,paid)
         end
@@ -200,7 +200,7 @@ function withdraw(mod::ModBase)
     else
         withdrawn=0
     end
-    println(withdrawn)
+    #println(withdrawn)
     return withdrawn
 
 end
@@ -237,6 +237,8 @@ function runMain(mod::Model)
                 println("Endogenous Withdrawal")
             end
         end
+        println("Still Banking")
+        println(length(mod.bankingList))
         if mod.theBank.vault <= 0
             break
         end
