@@ -87,8 +87,8 @@ function roundSimul(mod::Model,decision::Bool)
     #println(mean(countVec))
     # now get how many agents have yet to withdraw 
     futureCount=countVec.-wdCount
-    println("future")
-    println(length(futureCount))
+    #println("future")
+    #println(length(futureCount))
     # now, let's calculate the agent's return on the basis of a decision
     payVec=[]
     if decision
@@ -101,21 +101,26 @@ function roundSimul(mod::Model,decision::Bool)
         # and in turn, the number of agents 
         for future in futureCount
             simMod=clone(mod)
+            #println(length(simMod.bankingList))
             while future > 0
                 future=future-1
                 push!(payVec,withdraw(simMod))
             end
+            #println(length(simMod.bankingList))
             
         end
     else
         for future in futureCount
             #println("Hello")
+            #println(length(mod.bankingList))
             simMod=clone(mod)
+            #println(length(simMod.bankingList))
             while future > 0
                 future=future-1
                 # Withdraw other agents
                 withdraw(simMod)
             end
+            #println(length(simMod.bankingList))
             push!(payVec,payOut(simMod))
         end
         
@@ -123,6 +128,7 @@ function roundSimul(mod::Model,decision::Bool)
     end
     println("Pays")
     println(payVec)
+    #println(length(payVec))
     #println(payMat[1,:])
     #println(payMat[10,:])
     #return expReturn
@@ -132,8 +138,8 @@ end
 # we need a function to clone a model. 
 
 function clone(mod::Model)
-    return SimModel(mod.nonBankingList,
-                    mod.bankingList,
+    return SimModel(deepcopy(mod.nonBankingList),
+                    deepcopy(mod.bankingList),
                     mod.endow,
                     mod.deposit,
                     mod.objP,
@@ -141,7 +147,7 @@ function clone(mod::Model)
                     mod.insur,
                     mod.prod,
                     mod.riskAversion,
-                    mod.theBank)
+                    deepcopy(mod.theBank))
 end
 
 # we need a function that gives the vector of payments where there have been k withdrawals
@@ -165,7 +171,10 @@ end
 
 function withdraw(mod::ModBase)
     if length(mod.bankingList) > 0
+        #println("Withdrawing")
+        #println(length(mod.bankingList))
         pop!(mod.bankingList)
+        #println(length(mod.bankingList))
         withdrawn=min((1+mod.insur)*mod.deposit,mod.theBank.vault)
         mod.theBank.vault=max(mod.theBank.vault-withdrawn,0)
     else
