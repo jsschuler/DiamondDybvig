@@ -9,7 +9,7 @@ include("function2.jl")
 
 
 
-tstMod=modelGen(1000,.05,.05,.8,.1,1.0)
+tstMod=modelGen(1000,.25,.05,.1,.1,1.0)
 mUtil=modUtilGen(tstMod)
 
 
@@ -17,9 +17,7 @@ tstMod.deposit=tstMod.endow
 tstMod.endow=0
 
 
-for k in 1:length(tstMod.bankingList)
-    tstMod.theBank.vault=tstMod.theBank.vault+tstMod.deposit
-end
+
 println("Initial Vault")
 println(tstMod.theBank.vault)
 println(length(tstMod.bankingList))
@@ -43,5 +41,6 @@ println(length(tstMod.bankingList))
 
 #roundSimul(tstMod,false)
 #roundSimul(tstMod,true)
-
-println(runMain(tstMod))
+bargain(tstMod)
+#println(runMain(tstMod))
+println(tstMod.deposit)

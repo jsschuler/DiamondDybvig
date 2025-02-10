@@ -43,6 +43,8 @@ end
 
 
 # Now, we need a function to simulate one round for agents to compare decisions
+# Note that when the agent runs this function, it knows it does not have to withdraw
+# we have a function below where the agent does not know this.
 function roundSimul(mod::Model,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
@@ -132,16 +134,14 @@ function roundSimul(mod::Model,decision::Bool)
             end
             #println(length(simMod.bankingList))
             paid=payOut(simMod)
-            if isnan(paid)
-                println("Flag")
-                println(simMod.bankingList)
-                println(simMod.theBank.vault)
-                println(future)
-            end
+            #if isnan(paid)
+            #    println("Flag")
+            #    println(simMod.bankingList)
+            #    println(simMod.theBank.vault)
+            #    println(future)
+            #end
             push!(payVec,paid)
         end
-        
-        
     end
     #println("Pays")
     #println(payVec)
@@ -152,8 +152,52 @@ function roundSimul(mod::Model,decision::Bool)
     uFunc=modUtilGen(mod)
     #println("Debug")
     #println(payVec)
-    return sum(uFunc.(payVec))*(1/length(payVec))
+    
+    # now calculate total consumption
+    totConsump=mod.endow .+ payVec
 
+    return sum(uFunc.(totConsump))*(1/length(totConsump))
+
+end
+
+function subSimul(mod::Model)
+    global agtCnt
+    simMod=clone(mod)
+    subBinom=Binomial(agtCnt,simMod.subjP)
+    wdCount=rand(subBinom,1)[1]
+    wOrder=sample(vcat(repeat([true],wdCount),repeat([false],agtCnt-wdCount)),agtCnt,replace=false)
+    # we record each withdrawal amount
+    # and repeat the final disbursal among the still banking agents
+    # since each agent has an equal probability of being in any order
+    payOuts=[]
+    for j in 1:length(wOrder)
+        if wOrder[j]
+            push!(payOuts,withdraw(simMod))
+        end
+    end
+    paidOut=payOut(simMod)
+    for i in 1:(agtCnt-wdCount)
+        push!(payOuts,paidOut)
+    end
+    uFunc=modUtilGen(mod)
+    # now calculate total consumption
+    totConsump=simMod.endow .+ payOuts
+    return sum(uFunc.(totConsump))
+
+end
+
+function roundSimul(mod::Model)
+    global depth
+    global agtCnt
+    utilFunc=[]
+    for t in 1:depth
+        push!(utilFunc,subSimul(mod))
+    end
+    # now we calculate expected utility
+    # the denominator is the agtCnt times the depth 
+    # since each subsimulation gives the return for every agent
+    # and we run it as many times as the depth function 
+    return (1/(agtCnt*depth))*sum(utilFunc)
 end
 
 # we need a function to clone a model. 
@@ -181,10 +225,25 @@ end
 
 
 function bargain(mod::Model)
-    for dep in 0:10:mod.endow
-        tmpMod=clone(mod)
-        tmpMod.deposit=dep
-        tmpMod.endow=mod.endow-dep
+    totAvail=mod.endow + mod.deposit
+    utilResults=[]
+    for dep in 0:10:totAvail
+        mod.deposit=dep
+        mod.endow=totAvail-mod.deposit
+        # initialize the vault to empty
+        mod.theBank.vault=0
+        # now fill the vault
+        for k in 1:agtCnt
+            mod.theBank.vault=mod.theBank.vault+mod.deposit
+        end
+        push!(utilResults,roundSimul(mod))
+    end
+    mod.deposit=collect(0:10:totAvail)[argmax(utilResults)]
+    mod.endow=totAvail-mod.deposit
+    # now set the vault with the final decision
+    mod.theBank.vault=0
+    for k in 1:agtCnt
+        mod.theBank.vault=mod.theBank.vault+mod.deposit
     end
 end
 
