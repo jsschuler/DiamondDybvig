@@ -238,6 +238,7 @@ function bargain(mod::Model)
         end
         push!(utilResults,roundSimul(mod))
     end
+    #println(collect(0:10:totAvail)[argmax(utilResults)])
     mod.deposit=collect(0:10:totAvail)[argmax(utilResults)]
     mod.endow=totAvail-mod.deposit
     # now set the vault with the final decision
