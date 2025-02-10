@@ -39,9 +39,10 @@ function modelGen(endow::Int64,
     end
     return mod
 end
-# Now, we need a function to simulate one round
 
 
+
+# Now, we need a function to simulate one round for agents to compare decisions
 function roundSimul(mod::Model,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
