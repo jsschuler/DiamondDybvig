@@ -41,5 +41,7 @@ println(length(tstMod.bankingList))
 #println(noWD > WD)
 
 
-roundSimul(tstMod,false)
-roundSimul(tstMod,true)
+#roundSimul(tstMod,false)
+#roundSimul(tstMod,true)
+
+runMain(tstMod)

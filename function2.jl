@@ -102,6 +102,8 @@ function roundSimul(mod::Model,decision::Bool)
         for future in futureCount
             simMod=clone(mod)
             #println(length(simMod.bankingList))
+            # now the agent has the same probability of being anywhere in line. 
+            # Thus, we record the pay out for every withdrawal
             while future > 0
                 future=future-1
                 push!(payVec,withdraw(simMod))
@@ -126,12 +128,16 @@ function roundSimul(mod::Model,decision::Bool)
         
         
     end
-    println("Pays")
-    println(payVec)
+    #println("Pays")
+    #println(payVec)
     #println(length(payVec))
     #println(payMat[1,:])
     #println(payMat[10,:])
-    #return expReturn
+    # now calculate the expected utility
+    uFunc=modUtilGen(mod)
+    
+    
+    return sum(uFunc.(payVec))*(1/length(payVec))
 
 end
 
@@ -188,4 +194,17 @@ function payOut(mod::ModBase)
     #println("Banking")
     #println(length(mod.bankingList))
     return (1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
+end
+
+# now we need the main model function
+
+function runMain(mod::Model)
+    # exogenous withdrawals
+    global agtCnt
+    X=Binomial(agtCnt,mod.objP)
+    exogWD=rand(X,1)[1]
+    wOrder=sample(vcat(repeat([true],exogWD),repeat([false],agtCnt-exogWD)),agtCnt,replace=false)
+    println(wOrder)
+    
+
 end
