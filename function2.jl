@@ -106,7 +106,14 @@ function roundSimul(mod::Model,decision::Bool)
             # Thus, we record the pay out for every withdrawal
             while future > 0
                 future=future-1
-                push!(payVec,withdraw(simMod))
+                paid=withdraw(simMod)
+                if isnan(paid)
+                    #println("Flag")
+                    #println(simMod.bankingList)
+                    #println(simMod.theBank.vault)
+                    #println(future)
+                end
+                push!(payVec,paid)
             end
             #println(length(simMod.bankingList))
             
@@ -123,7 +130,14 @@ function roundSimul(mod::Model,decision::Bool)
                 withdraw(simMod)
             end
             #println(length(simMod.bankingList))
-            push!(payVec,payOut(simMod))
+            paid=payOut(simMod)
+            if isnan(paid)
+                #println("Flag")
+                #println(simMod.bankingList)
+                #println(simMod.theBank.vault)
+                #println(future)
+            end
+            push!(payVec,paid)
         end
         
         
@@ -135,8 +149,8 @@ function roundSimul(mod::Model,decision::Bool)
     #println(payMat[10,:])
     # now calculate the expected utility
     uFunc=modUtilGen(mod)
-    println("Debug")
-    println(payVec)
+    #println("Debug")
+    #println(payVec)
     return sum(uFunc.(payVec))*(1/length(payVec))
 
 end
