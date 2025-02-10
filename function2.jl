@@ -231,19 +231,19 @@ function runMain(mod::Model)
         # is the agent withdrawing 
         if wOrder[j]
             withdraw(mod)
-            println("Exogenous Withdrawal")
+            #println("Exogenous Withdrawal")
         else
             wUtil=roundSimul(mod,true)
             sUtil=roundSimul(mod,false)
-            println(wUtil)
-            println(sUtil)
+            #println(wUtil)
+            #println(sUtil)
             if wUtil > sUtil
                 withdraw(mod)
-                println("Endogenous Withdrawal")
+                #println("Endogenous Withdrawal")
             end
         end
-        println("Still Banking")
-        println(length(mod.bankingList))
+        #println("Still Banking")
+        #println(length(mod.bankingList))
         if mod.theBank.vault <= 0
             break
         end
