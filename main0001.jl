@@ -9,7 +9,7 @@ include("function2.jl")
 
 
 
-tstMod=modelGen(1000,.25,.2,.5,.1,1.0)
+tstMod=modelGen(1000,.05,.05,.8,.1,1.0)
 mUtil=modUtilGen(tstMod)
 
 

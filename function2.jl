@@ -208,7 +208,12 @@ end
 function payOut(mod::ModBase)
     #println("Banking")
     #println(length(mod.bankingList))
-    return (1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
+    if length(mod.bankingList) > 0
+        retVal=(1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
+    else 
+        retVal=0.0
+    end
+    return retVal 
 end
 
 # now we need the main model function
