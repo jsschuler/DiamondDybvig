@@ -3,6 +3,8 @@ using Random
 
 agtCnt=100
 depth=10000
+# now how many runs per model type?
+runCnt=100
 include("objects.jl")
 include("function2.jl")
 

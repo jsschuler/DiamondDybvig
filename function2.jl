@@ -323,3 +323,59 @@ function runMain(mod::Model)
     paid=payOut(mod)
     return (runCond,withdrawalCnt,paid)
 end
+
+# now we need the optimization functions
+
+function runFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
+    function runInstance(x)
+        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+        bargain(mod)
+        result=runMain(mod)
+    end
+    return runInstance
+end
+
+
+function runInstance(params)
+    repFunc=runFuncGen(params)
+    # run the model with these parameters a certain number of times
+    global runCnt
+    resultVec=repFunc.(1:runCnt)
+    runVec=Bool[]
+    noRunCounts=Int64[]
+    for res in resultVec
+            push!(runVec,res[1])
+            if ! res[1]
+                push!(noRunCounts,res[2])
+            end
+        # now calculate run probability
+        runProb=mean(runVec)
+        # and calculate rates of each number of withdrawals
+        countDict=Dict()
+        for el in noRunCounts
+            if !(el in keys(countDict))
+                countDict[el]=1
+            else
+                countDict[el]=countDict[el] +1
+            end
+        end
+        # now calculate a probability dictionary
+        denom=runCnt-sum(runVec)
+        probDict=Dict()
+        for ky in keys(countDict)
+            probDict[ky]=countDict[ky]/denom
+        end
+    end
+
+
+end
+
+function optimize(params)
+
+
+end
+
+space = Dict(
+    :objP => HP.QuantUniform(:objP,0.0,.001, 1.0),
+    :subjP => HP.QuantUniform(:subjP,0.0,.001, 1.0),
+)
