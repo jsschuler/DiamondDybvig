@@ -375,7 +375,12 @@ end
 function probFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
     function runInstance(withdrawCount::Int64)
         mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
-
+        if withdrawCount > 0
+            for j in 1:withdrawCount
+                withdraw(mod)
+            end
+        end
+        return mod.theBank.vault <= 0.0
     end
     return runInstance
 end
