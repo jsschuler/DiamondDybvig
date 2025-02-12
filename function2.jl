@@ -366,7 +366,22 @@ function runInstance(params)
             probDict[ky]=countDict[ky]/denom
         end
     end
+end
 
+
+# now we need a function that generates the probability distribution of outcomes based on 
+# agent expectations alone. 
+# we need a function that packages the non-tuned parameters
+function probFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
+    function runInstance(withdrawCount::Int64)
+        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+
+    end
+    return runInstance
+end
+
+
+function baseProb()
 
 end
 
