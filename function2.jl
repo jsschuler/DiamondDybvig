@@ -215,6 +215,22 @@ function clone(mod::Model)
                     deepcopy(mod.theBank))
 end
 
+# we also need a function to copy a model
+
+function copy(mod::Model)
+    return Model(deepcopy(mod.nonBankingList),
+                    deepcopy(mod.bankingList),
+                    mod.endow,
+                    mod.deposit,
+                    mod.objP,
+                    mod.subjP,
+                    mod.insur,
+                    mod.prod,
+                    mod.riskAversion,
+                    deepcopy(mod.theBank))
+end
+
+
 # we need a function that gives the vector of payments where there have been k withdrawals
 
 
@@ -326,47 +342,64 @@ end
 
 # now we need the optimization functions
 
-function runFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
-    function runInstance(x)
+
+
+
+
+
+function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
+    # set up the model
+    function runInstances(params)
         mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
         bargain(mod)
-        result=runMain(mod)
+        global runCnt
+        modVec=Model[]
+        for t in 1:runCnt
+            push!(modVec,copy(mod))
+        end
+        resultVec=runMain.(modVec)
+        runVec=Bool[]
+        noRunCounts=Int64[]
+        for res in resultVec
+                push!(runVec,res[1])
+                if ! res[1]
+                    push!(noRunCounts,res[2])
+                end
+            # now calculate run probability
+            runProb=mean(runVec)
+            # and calculate rates of each number of withdrawals
+            countDict=Dict()
+            for el in noRunCounts
+                if !(el in keys(countDict))
+                    countDict[el]=1
+                else
+                    countDict[el]=countDict[el] +1
+                end
+            end
+            # now calculate a probability dictionary
+            denom=runCnt-sum(runVec)
+            probDict=Dict()
+            for ky in keys(countDict)
+                probDict[ky]=countDict[ky]/denom
+            end
+        end
+        
+        # now, we need to calcuate the probability distribution of outcomes
+        # under the representive agent's subjective assumption
+        simMod=clone(mod)
+        X=Binomial(agtCnt,params[:subjP])
+        # now, for each possible number of withdrawing agents, determine whether
+        # the bank has failed or not. 
+        failVec=Bool[]
+        for t in 0:agtCnt
+            push!(failVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit <= 0))
+        end
+
     end
-    return runInstance
 end
 
 
-function runInstance(params)
-    repFunc=runFuncGen(params)
-    # run the model with these parameters a certain number of times
-    global runCnt
-    resultVec=repFunc.(1:runCnt)
-    runVec=Bool[]
-    noRunCounts=Int64[]
-    for res in resultVec
-            push!(runVec,res[1])
-            if ! res[1]
-                push!(noRunCounts,res[2])
-            end
-        # now calculate run probability
-        runProb=mean(runVec)
-        # and calculate rates of each number of withdrawals
-        countDict=Dict()
-        for el in noRunCounts
-            if !(el in keys(countDict))
-                countDict[el]=1
-            else
-                countDict[el]=countDict[el] +1
-            end
-        end
-        # now calculate a probability dictionary
-        denom=runCnt-sum(runVec)
-        probDict=Dict()
-        for ky in keys(countDict)
-            probDict[ky]=countDict[ky]/denom
-        end
-    end
-end
+
 
 
 # now we need a function that generates the probability distribution of outcomes based on 
@@ -386,7 +419,14 @@ function probFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
 end
 
 
-function baseProb()
+function baseProbGen(mod::Model)
+    # set Binomial
+    global agtCnt
+    X=Binomial(agtCnt,params[:subjP])
+    bankrupt::Array{Bool}=Bool[]
+    for t in 1:agtCnt
+
+    end
 
 end
 
