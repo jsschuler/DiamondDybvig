@@ -4,7 +4,7 @@ mutable struct Agent
 end
 
 mutable struct Bank
-    vault::Int64
+    vault::Float64
 end
 
 

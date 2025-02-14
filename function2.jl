@@ -304,7 +304,7 @@ function runMain(mod::Model)
     #println(wOrder)
     # now each agent decides whether or not to withdraw
     for j in 1:length(wOrder)
-        println(j) 
+       # println(j) 
         # is the agent withdrawing 
         if wOrder[j]
             withdraw(mod)
@@ -390,8 +390,8 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         X=Binomial(agtCnt,params[:subjP])
         # now, for each possible number of withdrawing agents, determine whether
         # the bank has failed or not. 
-        failVec=Bool[]
-        nonFailVec=Bool[]
+        failVec=Float64[]
+        nonFailVec=Float64[]
         for t in 0:agtCnt
             push!(failVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit <= 0)*pdf(X,t))
             push!(nonFailVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit > 0)*pdf(X,t))
@@ -403,9 +403,9 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         condFailProb=failVec./failProb
         confNonFailProb=nonFailVec./nonFailProb
         # now we put these together
-        failLabel=vcat(repeat([true],agtCnt),repeat([false],agtCnt))
+        failLabel=vcat(repeat([true],agtCnt+1),repeat([false],agtCnt+1))
         eventProbs=vcat(condFailProb,confNonFailProb)
-        withdrawCount=repeat(collect(1:agtCnt))
+        withdrawCount=repeat(collect(0:agtCnt),2)
         outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs)
         return outFrame
     end

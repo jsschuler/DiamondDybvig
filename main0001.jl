@@ -1,6 +1,7 @@
 using Distributions
 using Random
-
+using DataFrames
+using TreeParzen
 agtCnt=100
 depth=10000
 # now how many runs per model type?
@@ -43,6 +44,10 @@ println(length(tstMod.bankingList))
 
 #roundSimul(tstMod,false)
 #roundSimul(tstMod,true)
-bargain(tstMod)
+#bargain(tstMod)
 #println(runMain(tstMod))
-println(tstMod.deposit)
+#println(tstMod.deposit)
+
+runFunc=optimFuncGen(.4,.4,1.0)
+parameters=Dict(:subjP => .5,:objP => .3)
+println(runFunc(parameters))
