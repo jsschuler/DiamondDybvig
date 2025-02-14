@@ -391,12 +391,15 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         # now, for each possible number of withdrawing agents, determine whether
         # the bank has failed or not. 
         failVec=Bool[]
+        nonFailVec=Bool[]
         for t in 0:agtCnt
             push!(failVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit <= 0)*pdf(X,t))
+            push!(nonFailVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit > 0)*pdf(X,t))
         end
         # now get the probability of the bank failure
         failProb=sum(failVec)
-        
+        # now get the probability of each number of withdrawals condiional on failure
+        condProb=failVec./failProb
     end
 end
 
@@ -427,7 +430,7 @@ function baseProbGen(mod::Model)
     X=Binomial(agtCnt,params[:subjP])
     bankrupt::Array{Bool}=Bool[]
     for t in 1:agtCnt
-
+       push!(bankrupt,mod.theBank.vault - (1+insur)*t*(mod.deposit) <= 0)
     end
 
 end
