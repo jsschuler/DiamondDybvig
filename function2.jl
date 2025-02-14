@@ -398,9 +398,18 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         end
         # now get the probability of the bank failure
         failProb=sum(failVec)
+        nonFailProb=1-failProb
         # now get the probability of each number of withdrawals condiional on failure
-        condProb=failVec./failProb
+        condFailProb=failVec./failProb
+        confNonFailProb=nonFailVec./nonFailProb
+        # now we put these together
+        failLabel=vcat(repeat([true],agtCnt),repeat([false],agtCnt))
+        eventProbs=vcat(condFailProb,confNonFailProb)
+        withdrawCount=repeat(collect(1:agtCnt))
+        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs)
+        return outFrame
     end
+    return runInstances
 end
 
 
