@@ -399,6 +399,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         # now get the probability of the bank failure
         failProb=sum(failVec)
         nonFailProb=1-failProb
+        println(failProb)
         # now get the probability of each number of withdrawals condiional on failure
         condFailProb=failVec./failProb
         confNonFailProb=nonFailVec./nonFailProb
