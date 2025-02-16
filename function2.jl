@@ -352,17 +352,23 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     function runInstances(params)
         mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
         if isfile("modSave.jld2")
-            load("modSave.jld2")
+            mod=JLD2.load("modSave.jld2")["model"]
         else
             bargain(mod)
-            save("modSave.jld2",mod)
+            @save "modSave.jld2" model=mod
         end
         global runCnt
         modVec=Model[]
         for t in 1:runCnt
             push!(modVec,copy(mod))
         end
-        resultVec=runMain.(modVec)
+        if isfile("runSave.jld2")
+            resultVec=JLD2.load("runSave.jld2")["runVec"]
+        else
+            resultVec=runMain.(modVec)
+            @save "runSave.jld2" runVec=resultVec
+        end
+        println(resultVec)
         runVec=Bool[]
         noRunCounts=Int64[]
         for res in resultVec
@@ -387,6 +393,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
             for ky in keys(countDict)
                 probDict[ky]=countDict[ky]/denom
             end
+            println(probDict)
         end
         
         # now, we need to calcuate the probability distribution of outcomes
