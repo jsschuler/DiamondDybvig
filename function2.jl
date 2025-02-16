@@ -369,32 +369,8 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
             @save "runSave.jld2" runVec=resultVec
         end
         println(resultVec)
-        runVec=Bool[]
-        noRunCounts=Int64[]
-        for res in resultVec
-                push!(runVec,res[1])
-                if ! res[1]
-                    push!(noRunCounts,res[2])
-                end
-            # now calculate run probability
-            runProb=mean(runVec)
-            # and calculate rates of each number of withdrawals
-            countDict=Dict()
-            for el in noRunCounts
-                if !(el in keys(countDict))
-                    countDict[el]=1
-                else
-                    countDict[el]=countDict[el] +1
-                end
-            end
-            # now calculate a probability dictionary
-            denom=runCnt-sum(runVec)
-            probDict=Dict()
-            for ky in keys(countDict)
-                probDict[ky]=countDict[ky]/denom
-            end
-            println(probDict)
-        end
+        cnt=length(resultVec)
+
         
         # now, we need to calcuate the probability distribution of outcomes
         # under the representive agent's subjective assumption
@@ -419,7 +395,19 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         failLabel=vcat(repeat([true],agtCnt+1),repeat([false],agtCnt+1))
         eventProbs=vcat(condFailProb,confNonFailProb)
         withdrawCount=repeat(collect(0:agtCnt),2)
-        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs)
+        # add a column of 0's to change into pHat
+        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs,realCounts=repeat([0],2*(agtCnt+1)))
+        # now for each run of the model, increment the relevant count by 1
+        for res in resultVec
+            runVal=res[1]
+            wCount=res[2]
+            println("tst")
+            println(outFrame.fail.==runVal)
+            println(outFrame.withdrawals.==wCount)
+            println(outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts])
+            outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts]=outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts].+1
+        end
+
         return outFrame
     end
     return runInstances
