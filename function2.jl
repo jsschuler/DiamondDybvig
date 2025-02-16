@@ -393,8 +393,8 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         failVec=Float64[]
         nonFailVec=Float64[]
         for t in 0:agtCnt
-            push!(failVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit <= 0)*pdf(X,t))
-            push!(nonFailVec,(simMod.theBank.vault-t*simMod.insur*simMod.deposit > 0)*pdf(X,t))
+            push!(failVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit <= 0)*pdf(X,t))
+            push!(nonFailVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit > 0)*pdf(X,t))
         end
         # now get the probability of the bank failure
         failProb=sum(failVec)
