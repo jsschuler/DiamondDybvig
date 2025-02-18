@@ -345,6 +345,16 @@ end
 
 
 
+# we need a function to turn NaN into infinity
+function process(x::Float64)
+    if isnan(x)
+        return Inf
+    else
+        return x
+    end
+end
+
+
 
 
 function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
@@ -384,7 +394,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
             push!(failVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit <= 0)*pdf(X,t))
             push!(nonFailVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit > 0)*pdf(X,t))
         end
-        # now get the probability of the bank failure
+        # now get the probability of the bank failure UNDER the agent's hypothesis
         failProb=sum(failVec)
         nonFailProb=1-failProb
         println(failProb)
@@ -392,21 +402,44 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         condFailProb=failVec./failProb
         confNonFailProb=nonFailVec./nonFailProb
         # now we put these together
-        failLabel=vcat(repeat([true],agtCnt+1),repeat([false],agtCnt+1))
-        eventProbs=vcat(condFailProb,confNonFailProb)
-        withdrawCount=repeat(collect(0:agtCnt),2)
+        failLabel=vcat(repeat([true],1),repeat([false],agtCnt+1))
+        eventProbs=vcat([1.0],confNonFailProb)
+        withdrawCount=vcat(agtCnt,collect(0:agtCnt))
         # add a column of 0's to change into pHat
-        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs,realCounts=repeat([0],2*(agtCnt+1)))
+        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs,realCounts=repeat([0],(agtCnt+2)))
         # now for each run of the model, increment the relevant count by 1
+        # also get failure counts when we run the actual model
+        failCount=0
         for res in resultVec
             runVal=res[1]
+            if runVal
+                failCount=failCount+1
+            end
             wCount=res[2]
-            println("tst")
-            println(outFrame.fail.==runVal)
-            println(outFrame.withdrawals.==wCount)
-            println(outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts])
-            outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts]=outFrame[outFrame.fail.==runVal .& outFrame.withdrawals.==wCount,:realCounts].+1
+            #println("tst")
+            #println(outFrame.fail.==runVal)
+            #println(outFrame.withdrawals.==wCount)
+            #println(outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount)
+            outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts]=outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts].+1
         end
+
+        modFailProb=failCount/length(resultVec)
+        println("True Fail Prob")
+        println(modFailProb)
+        # now build a vector with P(FAIL)
+        outFrame.modProbFail=vcat([modFailProb],repeat([1-modFailProb],agtCnt+1))
+        outFrame.realProb.=outFrame.realCounts ./ length(resultVec)
+        outFrame.jointProbSub=outFrame.Prob .* vcat([failProb],repeat([nonFailProb],agtCnt+1))
+        outFrame.jointProbObj=outFrame.modProbFail .*  outFrame.realProb
+        println(sum(outFrame.jointProbSub))
+        println(sum(outFrame.jointProbObj))
+
+        # now filter out withdrawals where failire is certain
+        #outFrame[outFrame.Prob.==0.0,]
+
+        filter!(row -> row.Prob !=0.0, outFrame)
+        # now calculate each row's addition to KL divergence
+        outFrame.KL=process.(outFrame.jointProbObj .* log.(outFrame.jointProbObj./outFrame.jointProbSub))
 
         return outFrame
     end

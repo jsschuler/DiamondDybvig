@@ -13,7 +13,7 @@ include("function2.jl")
 
 
 
-tstMod=modelGen(1000,.25,.05,.1,.1,1.0)
+tstMod=modelGen(1000,.25,.25,.1,.1,1.0)
 mUtil=modUtilGen(tstMod)
 
 
@@ -51,4 +51,6 @@ println(length(tstMod.bankingList))
 
 runFunc=optimFuncGen(.4,.4,1.0)
 parameters=Dict(:subjP => .5,:objP => .3)
-println(runFunc(parameters))
+X=runFunc(parameters)
+println(X)
+println(sum(X.KL))
