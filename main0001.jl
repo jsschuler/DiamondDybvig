@@ -1,9 +1,10 @@
-using Distributions
-using Random
-using DataFrames
-using TreeParzen
-using JLD2
-using Distributed
+@everywhere using Distributions
+@everywhere using Random
+@everywhere using DataFrames
+@everywhere using TreeParzen
+@everywhere using JLD2
+@everywhere using Distributed
+using CSV
 @everywhere agtCnt=100
 @everywhere depth=10000
 # now how many runs per model type?
@@ -14,8 +15,7 @@ using Distributed
 
 # detect availabile cores
 cores=Sys.CPU_THREADS
-# now we use one fewer than the available thread to reserve the current thread for this process. 
-procs=cores-1
+
 
 # now, generate the possible values of insurance and production
 
@@ -42,6 +42,13 @@ while length(tuples) > 0
         elseif isReady(coreDict[c])
             result=fetch(coreDict[c])
             coreDict[c]=nothing
+            df=DataFrame(insur=currTup[1],
+                        prod=currTup[2],
+                        subjP=result[:subjP],
+                        objP=result[:objP]
+                        )
+            
+            CSV.write("../optimization.csv", df,header = false,append=true)
         end
     end
 end
