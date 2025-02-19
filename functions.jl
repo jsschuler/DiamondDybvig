@@ -466,44 +466,29 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     return runInstances
 end
 
+# now we need a function that runs the optimization for certain values
+# this function will be sent to other cores
 
+function optimize(insur::Float64,prod::Float64,riskAversion::Float64)
+    optFunc=optimFuncGen(insur,prod,riskAversion)
+    space = Dict(
+    :subjP => HP.QuantUniform(:subjP,0.0,.01, 1.0),
+    :objP => HP.QuantUniform(:objjP,0.0,.01, 1.0)
+    )
 
-
-
-# now we need a function that generates the probability distribution of outcomes based on 
-# agent expectations alone. 
-# we need a function that packages the non-tuned parameters
-function probFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
-    function runInstance(withdrawCount::Int64)
-        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
-        if withdrawCount > 0
-            for j in 1:withdrawCount
-                withdraw(mod)
-            end
-        end
-        return mod.theBank.vault <= 0.0
-    end
-    return runInstance
-end
-
-
-function baseProbGen(mod::Model)
-    # set Binomial
-    global agtCnt
-    X=Binomial(agtCnt,params[:subjP])
-    bankrupt::Array{Bool}=Bool[]
-    for t in 1:agtCnt
-       push!(bankrupt,mod.theBank.vault - (1+insur)*t*(mod.deposit) <= 0)
-    end
-
-end
-
-function optimize(params)
-
-
-end
-
-space = Dict(
-    :objP => HP.QuantUniform(:objP,0.0,.001, 1.0),
-    :subjP => HP.QuantUniform(:subjP,0.0,.001, 1.0),
+    best = fmin(
+        optFunc, # The function to be optimised.
+        space,         # The space over which the optimisation should take place.
+        10,          # The number of iterations to take.
 )
+    return best
+end
+
+# now we need some functions to handle the multi-threading
+function isReady(arg::Future)
+    return isready(arg)
+end
+
+function isReady(arg::Nothing)
+    return false
+end
