@@ -355,12 +355,11 @@ function process(x::Float64)
 end
 
 
-
-
 function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
         mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+        #bargain(mod)
         if isfile("modSave.jld2")
             mod=JLD2.load("modSave.jld2")["model"]
         else
@@ -372,6 +371,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         for t in 1:runCnt
             push!(modVec,copy(mod))
         end
+        #resultVec=runMain.(modVec)
         if isfile("runSave.jld2")
             resultVec=JLD2.load("runSave.jld2")["runVec"]
         else
@@ -461,7 +461,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
                        outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
 
-        return outFrame
+        return sum(outFrame.JSDiv)
     end
     return runInstances
 end
