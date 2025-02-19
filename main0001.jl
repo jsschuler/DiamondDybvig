@@ -4,12 +4,12 @@ using DataFrames
 using TreeParzen
 using JLD2
 using Distributed
-agtCnt=100
-depth=10000
+@everywhere agtCnt=100
+@everywhere depth=10000
 # now how many runs per model type?
-runCnt=100
-include("objects.jl")
-include("function2.jl")
+@everywhere runCnt=100
+@everywhere include("objects.jl")
+@everywhere include("functions.jl")
 
 
 

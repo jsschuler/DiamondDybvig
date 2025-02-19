@@ -1,383 +1,509 @@
 # the functions file
 
-function util(agt::Agent,x::Int64)
+function util(mod::ModBase,x::Float64)
     if x < 0
         x=0
     end
 
-    y=Float64(1+x)
-    if agt.riskAversion==1.0
+    y=1+x
+    if mod.riskAversion==1.0
         return(log(y))
     else
-        return((y^(1-agt.riskAversion))/(1-agt.riskAversion))
+        return((y^(1-mod.riskAversion))/(1-mod.riskAversion))
     end
 end
 
-function agtGen(endow::Int64,riskAversion::Float64,p::Float64)
-    global agtTicker
-    agtTicker=agtTicker+1
-    global exogP
-    push!(agtList,Agent(agtTicker,endow,riskAversion,0,exogP))
-    # now generate agent file
-    global key
-    # now, in this version, let the global probability of withdrawal be the same as the agent probability
-    global exogP
-    df=DataFrame(currKey=[key],
-              agt=[agtTicker],
-              endow=[endow],
-              risk=[riskAversion],
-              prob=[exogP]
-              )
-              #println(typeof(key))
-              CSV.write("../Data6/agents"*key*".csv", df,header = false,append=true)
-
-
+function modUtilGen(mod::ModBase)
+    function tmpFunc(x::Float64)
+        return util(mod,x)
+    end
+    return tmpFunc
 end
 
-function constraintGen()
-    # this function generates the agents with the parametric constraints
-    global fixRisk
-    global fixEndow
-    global fixProb
+
+function agtGen(mod::Model)
+    push!(mod.bankingList,Agent())
+end
+
+# now a function to generate a model
+function modelGen(endow::Int64,
+                 subjP::Float64,
+                 objP::Float64,
+                 insur::Float64,
+                 prod::Float64,
+                 riskAver::Float64)
     global agtCnt
-    if fixRisk
-        if fixEndow
-            # fix risk and endow
-            fEndow=sample(50:50:1000,1)[1]
-            fRisk=sample(0:.1:2)[1]
-            for a in 1:agtCnt
-                agtGen(fEndow,fRisk,sample(.05:.05:.2,1)[1])
+    mod=Model(Agent[],Agent[],endow,0,objP,subjP,insur,prod,riskAver,Bank(0))
+    for t in 1:agtCnt
+        agtGen(mod)
+    end
+    return mod
+end
+
+
+
+# Now, we need a function to simulate one round for agents to compare decisions
+# Note that when the agent runs this function, it knows it does not have to withdraw
+# we have a function below where the agent does not know this.
+function roundSimul(mod::Model,decision::Bool)
+    # How many agents have withdrawn?
+    wdCount=length(mod.nonBankingList)
+    stillBanking=length(mod.bankingList)
+    #println("Withdrawn")
+    #println(wdCount)
+    #println("Still Banking")
+    #println(stillBanking)
+    # now, if the agent has decided to withdraw, we adjust these by one
+    if decision
+        wdCount=wdCount+1
+        stillBanking=stillBanking-1
+    end
+
+    # now generate 1000 uniform variates
+    global depth
+    uVariates=rand(Uniform(),depth)
+    # now, calculate the probability distribution of withdrawals conditional on there being
+    # at least the number of observed withdrawals
+    global agtCnt
+    agtProb=Binomial(agtCnt,mod.subjP)
+    cdfCond=Dict{Int64,Float64}()
+    #println("Prob")
+    #println(ccdf(agtProb,wdCount))
+    for t in wdCount:(wdCount+stillBanking)
+        cdfCond[t]=(cdf(agtProb,t)-cdf(agtProb,wdCount))/ccdf(agtProb,wdCount)
+    end
+    #println("CDF")
+    #println(sort(collect(keys(cdfCond))))
+    countVec=Int64[]
+    for uVar in uVariates
+        maxCount=0
+        for t in wdCount:(wdCount+stillBanking)
+            if uVar >= cdfCond[t]
+                maxCount=t
             end
-        else
-            if fixProb
-                # fix risk and prob
-                fRisk=sample(0:.1:2)[1]
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],fRisk,fProb)
+        end
+        push!(countVec,maxCount)
+    end
+    #println(countVec)
+    #println(maximum(countVec))
+    #println(minimum(countVec))
+    #println(mean(countVec))
+    # now get how many agents have yet to withdraw 
+    futureCount=countVec.-wdCount
+    #println("future")
+    #println(length(futureCount))
+    # now, let's calculate the agent's return on the basis of a decision
+    payVec=[]
+    if decision
+        
+        # if the agent decides to withdraw, the agent decides to BE one of the withdrawing agents
+        # we guaranteed above that the agent always has a spot
+        # add the withdrawing agent to the withdrawal count
+        futureCount=futureCount.+1
+        # now, get the agent's place in line among those withdrawing
+        # and in turn, the number of agents 
+        for future in futureCount
+            simMod=clone(mod)
+            #println(length(simMod.bankingList))
+            # now the agent has the same probability of being anywhere in line. 
+            # Thus, we record the pay out for every withdrawal
+            while future > 0
+                future=future-1
+                paid=withdraw(simMod)
+                if isnan(paid)
+                    #println("Flag")
+                    #println(simMod.bankingList)
+                    #println(simMod.theBank.vault)
+                    #println(future)
                 end
-            else
-                # fix risk only
-                fRisk=sample(0:.1:2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],fRisk,sample(.05:.05:.2,1)[1])
-                end
+                push!(payVec,paid)
             end
+            #println(length(simMod.bankingList))
+            
         end
     else
-        if fixEndow
-            fEndow=sample(50:50:1000,1)[1]
-            if fixProb
-                fProb=sample(.05:.05:.2)[1]
-                # fix endow and prob
-                fEndow=sample(50:50:1000,1)[1]
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(fEndow,sample(0:.1:2)[1],fProb)
-                end
-            else
-                # fix endow only
-                fEndow=sample(50:50:1000,1)[1]
-                for a in 1:agtCnt
-                    agtGen(fEndow,sample(0:.1:2)[1],sample(.05:.05:.2,1)[1])
-                end
+        for future in futureCount
+            #println("Hello")
+            #println(length(mod.bankingList))
+            simMod=clone(mod)
+            #println(length(simMod.bankingList))
+            while future > 0
+                future=future-1
+                # Withdraw other agents
+                withdraw(simMod)
             end
-        else
-            if fixProb
-                # fix prob only
-                fProb=sample(.05:.05:.2)[1]
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],sample(0:.1:2)[1],fProb)
-                end
-            else
-                # fix nothing
-                for a in 1:agtCnt
-                    agtGen(sample(50:50:1000,1)[1],sample(0:.1:2)[1],sample(.05:.05:.2,1)[1])
-                end
-            end
+            #println(length(simMod.bankingList))
+            paid=payOut(simMod)
+            #if isnan(paid)
+            #    println("Flag")
+            #    println(simMod.bankingList)
+            #    println(simMod.theBank.vault)
+            #    println(future)
+            #end
+            push!(payVec,paid)
         end
     end
-end
-function agtSimRound(agt::Agent)
-    # this simulates one round
-    myBinom=Binomial(length(agtList),agt.p)
-    withdrawals=rand(myBinom,1)[1]
-    global agtList
-    agtWithDraw=sample(agtList,withdrawals,replace=false)
-    # is the current agent among those who withdrew?
-    simVault=theBank.vault
-    withdrew=false
-    withdrew::Bool
-    # we need to track how many deposits are withdrawn
-    # so we can calculate the agent's shares of the return
-    withDrawEndow=Int64[]
-    # save the original vault for later calculations
-    totVault=theBank.vault
-    for currAgt in agtWithDraw
-        simVault=simVault-ceil(Int64,(1+insur)*currAgt.deposit)
-        push!(withDrawEndow,currAgt.endow)
-        if currAgt==agt
-            if simVault < 0
-                #println("Bankruptcy!")
-                agtReturn=currAgt.endow+ceil(Int64,(1+insur)*currAgt.deposit)+simVault
-                agtReturn::Int64
-                withdrew=true
-            else
-                #println("No Bankruptcy")
-                #println("Debug")
-                #println(currAgt.deposit)
-                #println(ceil(Int64,(1+insur)*currAgt.deposit))
-                agtReturn=currAgt.endow+ceil(Int64,(1+insur)*currAgt.deposit)
-                agtReturn::Int64
-                withdrew=true
-            end
-            #println("Withdrawal")
-            #println(agtReturn)
-        end
-    end
-    # now if the agent did not withdraw, it gets its share of the leftover
-    if withdrew==false
-        totReturn=ceil(Int64,(1+prod)*max(0,simVault))
-        #println("No Withdrawal")
-        #println("Total Return")
-        #println(totReturn)
-        if totVault - sum(withDrawEndow) > 0
-            share=agt.deposit/(totVault-sum(withDrawEndow))
-        else
-            share=0
-        end
-        agtReturn=agt.endow+floor(Int64,share*totReturn)
-        agtReturn::Int64
-        #println("Agent Return")
-        #println(agtReturn)
-    end
-    #println(agtReturn)
-    return agtReturn
+    #println("Pays")
+    #println(payVec)
+    #println(length(payVec))
+    #println(payMat[1,:])
+    #println(payMat[10,:])
+    # now calculate the expected utility
+    uFunc=modUtilGen(mod)
+    #println("Debug")
+    #println(payVec)
+    
+    # now calculate total consumption
+    totConsump=mod.endow .+ payVec
+
+    return sum(uFunc.(totConsump))*(1/length(totConsump))
+
 end
 
-function agtSim(agt)
-    # this function applies the simulation in parallel
+function subSimul(mod::Model)
+    global agtCnt
+    simMod=clone(mod)
+    subBinom=Binomial(agtCnt,simMod.subjP)
+    wdCount=rand(subBinom,1)[1]
+    wOrder=sample(vcat(repeat([true],wdCount),repeat([false],agtCnt-wdCount)),agtCnt,replace=false)
+    # we record each withdrawal amount
+    # and repeat the final disbursal among the still banking agents
+    # since each agent has an equal probability of being in any order
+    payOuts=[]
+    for j in 1:length(wOrder)
+        if wOrder[j]
+            push!(payOuts,withdraw(simMod))
+        end
+    end
+    paidOut=payOut(simMod)
+    for i in 1:(agtCnt-wdCount)
+        push!(payOuts,paidOut)
+    end
+    uFunc=modUtilGen(mod)
+    # now calculate total consumption
+    totConsump=simMod.endow .+ payOuts
+    return sum(uFunc.(totConsump))
+
+end
+
+function roundSimul(mod::Model)
     global depth
-    agtArray=repeat(Agent[agt],depth)
-    Folds.map(agtSimRound,agtArray)
-end
-
-function simUtil(agt)
-    # this function runs the simulation and returns the utility
-    aFunc   = function(x)
-        return(util(agt,x))
+    global agtCnt
+    utilFunc=[]
+    for t in 1:depth
+        push!(utilFunc,subSimul(mod))
     end
-    returns=agtSim(agt)
-    #println(typeof(returns))
-    #println(returns)
-    #println(aFunc(1000))
-    #utilVec=map(aFunc,returns)
-    utilVec=Folds.map(aFunc,returns)
-    utilVec::Array{Float64,1}
-    retMean=mean(returns)
-    retMin=minimum(returns)
-    retMax=maximum(returns)
-    #println("Average Return")
-    #println(retMean)
-    #println("Min Return")
-    #println(retMin)
-    #println("Max Return")
-    #println(retMax)
-    return utilVec
+    # now we calculate expected utility
+    # the denominator is the agtCnt times the depth 
+    # since each subsimulation gives the return for every agent
+    # and we run it as many times as the depth function 
+    return (1/(agtCnt*depth))*sum(utilFunc)
 end
 
-# now we need a function that runs the bargaining
-function agtDecision(agt::Agent)
-    # the agent decides how much to invest given all
-    # other agents have invested
-    # reset this agent's endowment and deposit
-    origEndow=agt.endow+agt.deposit
-    origEndow::Int64
-    origDeposit=agt.deposit::Int64
-    #println("original endowment")
-    #println(origEndow)
-    global bargRes
-    #println(bargRes)
-    #println(agt.endow)
-    options=collect(0:bargRes:origEndow)
-    options::Array{Int64}
-    #println("options")
-    #println(options)
-    Util=Float64[]
-    for opt in options
-        agt.deposit=opt
-        agt.endow=origEndow-opt
-        #println("Deposit and Endow")
-        #println(agt.deposit)
-        #println(agt.endow)
-        global depth
-        totUtil=sum(simUtil(agt))/depth
-        totUtil::Float64
-        push!(Util,totUtil)
-        #println("Utility")
-        #println(totUtil)
-    end
-    # now find the highest utility option
-    #println("utilities")
-    #println(Util)
-    #for i in 1:length(options)
-        #println(options[i]," ",Util[i])
-    #end
-    bestDeposit=options[findmax(Util)[2]]
-    #println("Best Deposit")
-    #println(bestDeposit)
-    agt.deposit=bestDeposit
-    agt.endow=origEndow-agt.deposit
-    # now reset vault
-    global theBank
-    theBank.vault=theBank.vault-origDeposit+agt.deposit
+# we need a function to clone a model. 
 
+function clone(mod::Model)
+    return SimModel(deepcopy(mod.nonBankingList),
+                    deepcopy(mod.bankingList),
+                    mod.endow,
+                    mod.deposit,
+                    mod.objP,
+                    mod.subjP,
+                    mod.insur,
+                    mod.prod,
+                    mod.riskAversion,
+                    deepcopy(mod.theBank))
+end
+
+# we also need a function to copy a model
+
+function copy(mod::Model)
+    return Model(deepcopy(mod.nonBankingList),
+                    deepcopy(mod.bankingList),
+                    mod.endow,
+                    mod.deposit,
+                    mod.objP,
+                    mod.subjP,
+                    mod.insur,
+                    mod.prod,
+                    mod.riskAversion,
+                    deepcopy(mod.theBank))
 end
 
 
-function bargain()
-    # now, we keep track of each agent's preferred deposit for
-    # the past two rounds. If no agent changes in two rounds, we break
-    penultiRound=similar(agtList,Int64)
-    ultiRound=similar(agtList,Int64)
+# we need a function that gives the vector of payments where there have been k withdrawals
 
-    penultiRound=ultiRound
-    while true
-        for i  in 1:length(agtList)
-            agtDecision(agtList[i])
-            ultiRound[i]=agtList[i].deposit
+
+
+# now the bargaining step
+# we constrain the agents to all have the same deposit
+
+
+
+function bargain(mod::Model)
+    totAvail=mod.endow + mod.deposit
+    utilResults=[]
+    for dep in 0:10:totAvail
+        mod.deposit=dep
+        mod.endow=totAvail-mod.deposit
+        # initialize the vault to empty
+        mod.theBank.vault=0
+        # now fill the vault
+        for k in 1:agtCnt
+            mod.theBank.vault=mod.theBank.vault+mod.deposit
         end
-        #println("Arrays")
-        #println(penultiRound)
-        #println(ultiRound)
-        if all(penultiRound.==ultiRound)
+        push!(utilResults,roundSimul(mod))
+    end
+    #println(collect(0:10:totAvail)[argmax(utilResults)])
+    mod.deposit=collect(0:10:totAvail)[argmax(utilResults)]
+    mod.endow=totAvail-mod.deposit
+    # now set the vault with the final decision
+    mod.theBank.vault=0
+    for k in 1:agtCnt
+        mod.theBank.vault=mod.theBank.vault+mod.deposit
+    end
+end
+
+# we need the withdrawal function
+
+function withdraw(mod::ModBase)
+    if length(mod.bankingList) > 0
+        #println("Withdrawing")
+        #println(length(mod.bankingList))
+        pop!(mod.bankingList)
+        #println(length(mod.bankingList))
+        withdrawn=min((1+mod.insur)*mod.deposit,mod.theBank.vault)
+        mod.theBank.vault=max(mod.theBank.vault-withdrawn,0)
+    else
+        withdrawn=0
+    end
+    #println(withdrawn)
+    return withdrawn
+
+end
+
+function payOut(mod::ModBase)
+    #println("Banking")
+    #println(length(mod.bankingList))
+    if length(mod.bankingList) > 0
+        retVal=(1/length(mod.bankingList)*(1+mod.insur+mod.prod)*mod.theBank.vault)
+    else 
+        retVal=0.0
+    end
+    return retVal 
+end
+
+# now we need the main model function
+
+function runMain(mod::Model)
+    # exogenous withdrawals
+    global agtCnt
+    X=Binomial(agtCnt,mod.objP)
+    exogWD=rand(X,1)[1]
+    wOrder=sample(vcat(repeat([true],exogWD),repeat([false],agtCnt-exogWD)),agtCnt,replace=false)
+    #println(wOrder)
+    # now each agent decides whether or not to withdraw
+    for j in 1:length(wOrder)
+       # println(j) 
+        # is the agent withdrawing 
+        if wOrder[j]
+            withdraw(mod)
+            #println("Exogenous Withdrawal")
+        else
+            wUtil=roundSimul(mod,true)
+            sUtil=roundSimul(mod,false)
+            #println(wUtil)
+            #println(sUtil)
+            if wUtil > sUtil
+                withdraw(mod)
+                #println("Endogenous Withdrawal")
+            end
+        end
+        #println("Still Banking")
+        #println(length(mod.bankingList))
+        if mod.theBank.vault <= 0
             break
         end
     end
-end
-
-
-
-function withdraw(agt::Agent,exog::Bool)
-    # this function makes the agent withdraw
-    global insur
-    payout=min(theBank.vault,round(Int64,(1+insur)*agt.deposit))
-    theBank.vault=theBank.vault-payout
-    agt.endow=agt.endow+payout
-    deleteat!(agtList, findall(x->x==agt,agtList))
-    push!(withDList,agt)
-    retVal=false
-    retVal::Bool
-    if theBank.vault==0
-        retVal=true
+    # pull in global agent count
+    global agtCnt
+    withdrawalCnt=length(mod.bankingList)
+    # now report the number of withdrawals and the run condition
+    # if there has been a run, we consider all agents to have withdrawn 
+    runCond::Bool=false
+    if mod.theBank.vault <= 0
+        runCond=true
+        withdrawalCnt=agtCnt
     end
-    global key
-    df=DataFrame(currKey=[key],
-              agt=[agt.idx],
-              deposit=[agt.deposit],
-              exogW=[exog],
-              Failure=[retVal]
-              )
-              CSV.write("../Data6/withdrawals"*key*".csv", df,header = false,append=true)
-
-    return(retVal)
+    # now what is the return?
+    paid=payOut(mod)
+    return (runCond,withdrawalCnt,paid)
 end
 
-function conditionalWithdraw(agt::Agent,withdraws::Array{Agent})
-    # first, we need a copy of the array of agents
-    global agtList
-    allAgts=agtList
-    allAgts::Array{agent}
-
-end
+# now we need the optimization functions
 
 
-function withdrawDecision(agt::Agent)
-    # once the deposits are in, the agents decide whether to withdraw
-    # if activation is true, the agent decides between certainty of
-    # either the full deposit with insurance or the entire bank vault
-    # which ever is larger
-    # and the simulated payout including being later forced to withdraw
-    global theBank
-    global insur
-    global depth
-    # load the utility function
-    aFunc   = function(x)
-        return(util(agt,x))
+
+
+# we need a function to turn NaN into infinity
+function process(x::Float64)
+    if isnan(x)
+        return Inf
+    else
+        return x
     end
-
-
-    wPayout=aFunc(min(theBank.vault,round(Int64,(1+insur)*agt.deposit)))
-    wPayout::Float64
-    totUtil=sum(simUtil(agt))/depth
-    totUtil::Float64
-    retVal=false
-    retVal::Bool
-    bankrupt=false
-    bankrupt::Bool
-    withdrawDesire=(wPayout > totUtil)::Bool
-    if  withdrawDesire
-        bankrupt=withdraw(agt,false)
-        retVal=true
-    end
-
-    global key
-    df=DataFrame(currKey=[key],
-              agt=[agt.idx],
-              deposit=[agt.deposit],
-              withdraw=[withdrawDesire],
-              Failure=[bankrupt],
-              wdUtil=[wPayout],
-              stUtil=[totUtil]
-              )
-              CSV.write("../Data6/activations"*key*".csv", df,header = false,append=true)
-
-    return(Bool[bankrupt,retVal])
 end
 
 
-function model()
-    # this is the main model function.
-    # first, we find out which agents are type 1
-    univBinom=Binomial(length(agtList),exogP)
-    withdrawals=rand(univBinom,1)[1]
-    #println("withdrawals exogenous")
-    #println(withdrawals)
-    global agtList
-    agtWithdraw=sample(agtList,withdrawals,replace=false)
-    global activation
-    # if the activation parameter is true, then agents announce a withdrawal and
-    # withdraw. If false, all agents announce before withdrawing.
-    bankrupt=false
-    bankrupt::Bool
-
-    for agt in agtWithdraw
-        bankrupt=withdraw(agt,true)
-        if bankrupt
-            #println("Bank FAILS!")
-            return(bankrupt)
+function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
+    # set up the model
+    function runInstances(params)
+        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+        #bargain(mod)
+        if isfile("modSave.jld2")
+            mod=JLD2.load("modSave.jld2")["model"]
+        else
+            bargain(mod)
+            @save "modSave.jld2" model=mod
         end
-    end
-    if ! bankrupt
-        # now that the type 1 agents have bailed, other agents reconsider their decision
-        # shuffle the agent list
-        cond=true
-        cond::Bool
-        while cond
-            withdrawing=Bool[]
-            # sort agents in random order
-            agtList=sample(agtList,length(agtList),replace=false)
-            for agt in agtList
-                # this is where we track activation
-                decision=withdrawDecision(agt)
-                push!(withdrawing,decision[2])
-                if decision[1]
-                    #println("Bank Fails!")
-                    return(decision[1])
-                end
+        global runCnt
+        modVec=Model[]
+        for t in 1:runCnt
+            push!(modVec,copy(mod))
+        end
+        #resultVec=runMain.(modVec)
+        if isfile("runSave.jld2")
+            resultVec=JLD2.load("runSave.jld2")["runVec"]
+        else
+            resultVec=runMain.(modVec)
+            @save "runSave.jld2" runVec=resultVec
+        end
+        println(resultVec)
+        cnt=length(resultVec)
+
+        
+        # now, we need to calcuate the probability distribution of outcomes
+        # under the representive agent's subjective assumption
+        simMod=clone(mod)
+        X=Binomial(agtCnt,params[:subjP])
+        # now, for each possible number of withdrawing agents, determine whether
+        # the bank has failed or not. 
+        failVec=Float64[]
+        nonFailVec=Float64[]
+        for t in 0:agtCnt
+            push!(failVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit <= 0)*pdf(X,t))
+            push!(nonFailVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit > 0)*pdf(X,t))
+        end
+        # now get the probability of the bank failure UNDER the agent's hypothesis
+        failProb=sum(failVec)
+        nonFailProb=1-failProb
+        println(failProb)
+        # now get the probability of each number of withdrawals condiional on failure
+        condFailProb=failVec./failProb
+        confNonFailProb=nonFailVec./nonFailProb
+        # now we put these together
+        failLabel=vcat(repeat([true],1),repeat([false],agtCnt+1))
+        eventProbs=vcat([1.0],confNonFailProb)
+        withdrawCount=vcat(agtCnt,collect(0:agtCnt))
+        # add a column of 0's to change into pHat
+        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs,realCounts=repeat([0],(agtCnt+2)))
+        # now for each run of the model, increment the relevant count by 1
+        # also get failure counts when we run the actual model
+        failCount=0
+        for res in resultVec
+            runVal=res[1]
+            if runVal
+                failCount=failCount+1
             end
-            cond=any(withdrawing)
+            wCount=res[2]
+            #println("tst")
+            #println(outFrame.fail.==runVal)
+            #println(outFrame.withdrawals.==wCount)
+            #println(outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount)
+            outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts]=outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts].+1
         end
+
+        modFailProb=failCount/length(resultVec)
+        println("True Fail Prob")
+        println(modFailProb)
+        # now build a vector with P(FAIL)
+        outFrame.modProbFail=vcat([modFailProb],repeat([1-modFailProb],agtCnt+1))
+        outFrame.realProb.=outFrame.realCounts ./ length(resultVec)
+        outFrame.jointProbSub=outFrame.Prob .* vcat([failProb],repeat([nonFailProb],agtCnt+1))
+        outFrame.jointProbObj=outFrame.modProbFail .*  outFrame.realProb
+        # now, we cannot allow zero probabilities for the purpose of calculating divergence. 
+        # find the smallest probability in both and add in to every probability
+        # renormalize probabilities over their sum, this also accounts for float errors
+        # for this reason, we also remove impossible events
+        filter!(row -> row.Prob !=0.0, outFrame)
+
+        println("Mins")
+
+        println(outFrame)
+        println(minimum(outFrame.jointProbSub))
+        println(minimum(outFrame.jointProbObj))
+        
+        outFrame.jointProbSub=outFrame.jointProbSub .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
+        outFrame.jointProbObj=outFrame.jointProbObj .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
+        outFrame.jointProbSub=outFrame.jointProbSub ./sum(outFrame.jointProbSub)
+        outFrame.jointProbObj=outFrame.jointProbObj ./sum(outFrame.jointProbObj)
+
+
+        # now form mixture distribution for Jensen-Shannon Divergence
+        outFrame.M=(outFrame.jointProbSub+outFrame.jointProbObj)/2
+        println(outFrame.jointProbSub)
+        println(outFrame.jointProbObj)
+        println(sum(outFrame.M))
+
+
+        
+        # now calculate each row's addition to Jensen-Shannon divergence
+        outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
+                       outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
+
+        return sum(outFrame.JSDiv)
     end
-return(bankrupt)
+    return runInstances
 end
+
+
+
+
+
+# now we need a function that generates the probability distribution of outcomes based on 
+# agent expectations alone. 
+# we need a function that packages the non-tuned parameters
+function probFuncGen(params,insur::Float64,prod::Float64,riskAversion::Float64)
+    function runInstance(withdrawCount::Int64)
+        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+        if withdrawCount > 0
+            for j in 1:withdrawCount
+                withdraw(mod)
+            end
+        end
+        return mod.theBank.vault <= 0.0
+    end
+    return runInstance
+end
+
+
+function baseProbGen(mod::Model)
+    # set Binomial
+    global agtCnt
+    X=Binomial(agtCnt,params[:subjP])
+    bankrupt::Array{Bool}=Bool[]
+    for t in 1:agtCnt
+       push!(bankrupt,mod.theBank.vault - (1+insur)*t*(mod.deposit) <= 0)
+    end
+
+end
+
+function optimize(params)
+
+
+end
+
+space = Dict(
+    :objP => HP.QuantUniform(:objP,0.0,.001, 1.0),
+    :subjP => HP.QuantUniform(:subjP,0.0,.001, 1.0),
+)
