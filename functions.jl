@@ -1,5 +1,4 @@
 # the functions file
-
 function util(mod::ModBase,x::Float64)
     if x < 0
         x=0
@@ -359,26 +358,26 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
         mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
-        #bargain(mod)
-        if isfile("modSave.jld2")
-            mod=JLD2.load("modSave.jld2")["model"]
-        else
-            bargain(mod)
-            @save "modSave.jld2" model=mod
-        end
+        bargain(mod)
+        #if isfile("modSave.jld2")
+        #    mod=JLD2.load("modSave.jld2")["model"]
+        #else
+        #    bargain(mod)
+        #    @save "modSave.jld2" model=mod
+        #end
         global runCnt
         modVec=Model[]
         for t in 1:runCnt
             push!(modVec,copy(mod))
         end
-        #resultVec=runMain.(modVec)
-        if isfile("runSave.jld2")
-            resultVec=JLD2.load("runSave.jld2")["runVec"]
-        else
-            resultVec=runMain.(modVec)
-            @save "runSave.jld2" runVec=resultVec
-        end
-        println(resultVec)
+        resultVec=runMain.(modVec)
+        #if isfile("runSave.jld2")
+        #    resultVec=JLD2.load("runSave.jld2")["runVec"]
+        #else
+        #    resultVec=runMain.(modVec)
+        #    @save "runSave.jld2" runVec=resultVec
+        #end
+        #println(resultVec)
         cnt=length(resultVec)
 
         
@@ -397,7 +396,7 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         # now get the probability of the bank failure UNDER the agent's hypothesis
         failProb=sum(failVec)
         nonFailProb=1-failProb
-        println(failProb)
+        #println(failProb)
         # now get the probability of each number of withdrawals condiional on failure
         condFailProb=failVec./failProb
         confNonFailProb=nonFailVec./nonFailProb
@@ -424,8 +423,8 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         end
 
         modFailProb=failCount/length(resultVec)
-        println("True Fail Prob")
-        println(modFailProb)
+        #println("True Fail Prob")
+        #println(modFailProb)
         # now build a vector with P(FAIL)
         outFrame.modProbFail=vcat([modFailProb],repeat([1-modFailProb],agtCnt+1))
         outFrame.realProb.=outFrame.realCounts ./ length(resultVec)
@@ -437,11 +436,11 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         # for this reason, we also remove impossible events
         filter!(row -> row.Prob !=0.0, outFrame)
 
-        println("Mins")
+        #println("Mins")
 
-        println(outFrame)
-        println(minimum(outFrame.jointProbSub))
-        println(minimum(outFrame.jointProbObj))
+        #println(outFrame)
+        #println(minimum(outFrame.jointProbSub))
+        #println(minimum(outFrame.jointProbObj))
         
         outFrame.jointProbSub=outFrame.jointProbSub .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
         outFrame.jointProbObj=outFrame.jointProbObj .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
@@ -451,9 +450,9 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
 
         # now form mixture distribution for Jensen-Shannon Divergence
         outFrame.M=(outFrame.jointProbSub+outFrame.jointProbObj)/2
-        println(outFrame.jointProbSub)
-        println(outFrame.jointProbObj)
-        println(sum(outFrame.M))
+        #println(outFrame.jointProbSub)
+        #println(outFrame.jointProbObj)
+        #println(sum(outFrame.M))
 
 
         
