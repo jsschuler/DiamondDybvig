@@ -431,15 +431,35 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
         outFrame.realProb.=outFrame.realCounts ./ length(resultVec)
         outFrame.jointProbSub=outFrame.Prob .* vcat([failProb],repeat([nonFailProb],agtCnt+1))
         outFrame.jointProbObj=outFrame.modProbFail .*  outFrame.realProb
-        println(sum(outFrame.jointProbSub))
-        println(sum(outFrame.jointProbObj))
-
-        # now filter out withdrawals where failire is certain
-        #outFrame[outFrame.Prob.==0.0,]
-
+        # now, we cannot allow zero probabilities for the purpose of calculating divergence. 
+        # find the smallest probability in both and add in to every probability
+        # renormalize probabilities over their sum, this also accounts for float errors
+        # for this reason, we also remove impossible events
         filter!(row -> row.Prob !=0.0, outFrame)
-        # now calculate each row's addition to KL divergence
-        outFrame.KL=process.(outFrame.jointProbObj .* log.(outFrame.jointProbObj./outFrame.jointProbSub))
+
+        println("Mins")
+
+        println(outFrame)
+        println(minimum(outFrame.jointProbSub))
+        println(minimum(outFrame.jointProbObj))
+        
+        outFrame.jointProbSub=outFrame.jointProbSub .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
+        outFrame.jointProbObj=outFrame.jointProbObj .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
+        outFrame.jointProbSub=outFrame.jointProbSub ./sum(outFrame.jointProbSub)
+        outFrame.jointProbObj=outFrame.jointProbObj ./sum(outFrame.jointProbObj)
+
+
+        # now form mixture distribution for Jensen-Shannon Divergence
+        outFrame.M=(outFrame.jointProbSub+outFrame.jointProbObj)/2
+        println(outFrame.jointProbSub)
+        println(outFrame.jointProbObj)
+        println(sum(outFrame.M))
+
+
+        
+        # now calculate each row's addition to Jensen-Shannon divergence
+        outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
+                       outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
 
         return outFrame
     end
