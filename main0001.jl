@@ -3,6 +3,7 @@ using Random
 using DataFrames
 using TreeParzen
 using JLD2
+using Distributed
 agtCnt=100
 depth=10000
 # now how many runs per model type?
