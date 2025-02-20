@@ -28,13 +28,16 @@ for insur in 0.5:0.1:0.6
     end
 end
 
+# count completed processes
+procCnt=length(tuples)
+doneCnt=0
 coreDict=Dict()
 for coreNum in 2:cores
     coreDict[coreNum] = nothing
 end
 
 # now we run the process
-while length(tuples) > 0
+while doneCnt < procCnt
     
     for c in keys(coreDict)
         # if the core contains nothing, send it an optimization procedure
@@ -45,6 +48,7 @@ while length(tuples) > 0
             coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],1.0)
         elseif isReady(coreDict[c])
             result=fetch(coreDict[c])
+            doneCnt=doneCnt+1
             coreDict[c]=nothing
             df=DataFrame(insur=currTup[1],
                         prod=currTup[2],
