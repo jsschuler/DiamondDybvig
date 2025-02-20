@@ -472,7 +472,7 @@ function optimize(insur::Float64,prod::Float64,riskAversion::Float64)
         space,         # The space over which the optimisation should take place.
         10,          # The number of iterations to take.
 )
-    return best
+    return (best,insur,prod)
 end
 
 # now we need some functions to handle the multi-threading

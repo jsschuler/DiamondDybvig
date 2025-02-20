@@ -51,10 +51,10 @@ while doneCnt < procCnt
             global doneCnt
             doneCnt=doneCnt+1
             coreDict[c]=nothing
-            df=DataFrame(insur=currTup[1],
-                        prod=currTup[2],
-                        subjP=result[:subjP],
-                        objP=result[:objP]
+            df=DataFrame(insur=result[2],
+                        prod=result[3],
+                        subjP=result[1][:subjP],
+                        objP=result[1][:objP]
                         )
             println("Writing File")
             CSV.write("../optimization.csv", df,header = false,append=true)
