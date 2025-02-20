@@ -1,9 +1,10 @@
+@everywhere using Distributed
 @everywhere using Distributions
 @everywhere using Random
 @everywhere using DataFrames
 @everywhere using TreeParzen
 @everywhere using JLD2
-@everywhere using Distributed
+
 using CSV
 @everywhere agtCnt=100
 @everywhere depth=10000
