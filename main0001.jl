@@ -9,7 +9,7 @@ using CSV
 @everywhere agtCnt=100
 @everywhere depth=1000
 # now how many runs per model type?
-@everywhere runCnt=100
+@everywhere runCnt=5
 @everywhere include("objects.jl")
 @everywhere include("functions.jl")
 
@@ -35,10 +35,13 @@ end
 
 # now we run the process
 while length(tuples) > 0
-    currTup=popfirst!(tuples)
+    
     for c in keys(coreDict)
         # if the core contains nothing, send it an optimization procedure
-        if isnothing(coreDict[c])
+        if isnothing(coreDict[c]) && length(tuples) > 0
+            currTup=popfirst!(tuples)
+            println("Sending tuple "*string(currTup)*"to core "*string(c))
+            println(length(tuples))
             coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],1.0)
         elseif isReady(coreDict[c])
             result=fetch(coreDict[c])
@@ -48,7 +51,7 @@ while length(tuples) > 0
                         subjP=result[:subjP],
                         objP=result[:objP]
                         )
-            
+            println("Writing File")
             CSV.write("../optimization.csv", df,header = false,append=true)
         end
     end
