@@ -346,10 +346,10 @@ end
 
 
 
-function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
+function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
-        mod=modelGen(100,params[:subjP],params[:objP],insur,prod,riskAversion)
+        mod=modelGen(100,params[:subjP],objP,insur,prod,riskAversion)
         bargain(mod)
         #if isfile("modSave.jld2")
         #    mod=JLD2.load("modSave.jld2")["model"]
@@ -460,11 +460,10 @@ end
 # now we need a function that runs the optimization for certain values
 # this function will be sent to other cores
 
-function optimize(insur::Float64,prod::Float64,riskAversion::Float64)
-    optFunc=optimFuncGen(insur,prod,riskAversion)
+function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
+    optFunc=optimFuncGen(insur,prod,objP,riskAversion)
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.0,.01, 1.0),
-    :objP => HP.QuantUniform(:objjP,0.0,.01, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.0,.01, 1.0)
     )
 
     best = fmin(
@@ -472,7 +471,7 @@ function optimize(insur::Float64,prod::Float64,riskAversion::Float64)
         space,         # The space over which the optimisation should take place.
         10,          # The number of iterations to take.
 )
-    return (best,insur,prod)
+    return (best,insur,prod,objP)
 end
 
 # now we need some functions to handle the multi-threading

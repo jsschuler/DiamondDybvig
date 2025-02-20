@@ -24,7 +24,9 @@ tuples=[]
 
 for insur in 0.5:0.1:0.6
     for prod in 0.5:0.1:0.6
-        push!(tuples,(insur,prod))
+        for objP in 0.0:0.2:1.0
+            push!(tuples,(insur,prod,objP))
+        end
     end
 end
 
@@ -43,9 +45,9 @@ while doneCnt < procCnt
         # if the core contains nothing, send it an optimization procedure
         if isnothing(coreDict[c]) && length(tuples) > 0
             currTup=popfirst!(tuples)
-            println("Sending tuple "*string(currTup)*"to core "*string(c))
+            println("Sending tuple "*string(currTup)*" to core "*string(c))
             println(length(tuples))
-            coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],1.0)
+            coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],currTup[3],1.0)
         elseif isReady(coreDict[c])
             result=fetch(coreDict[c])
             global doneCnt
@@ -54,7 +56,7 @@ while doneCnt < procCnt
             df=DataFrame(insur=result[2],
                         prod=result[3],
                         subjP=result[1][:subjP],
-                        objP=result[1][:objP]
+                        objP=result[4]
                         )
             println("Writing File")
             CSV.write("../optimization.csv", df,header = false,append=true)
