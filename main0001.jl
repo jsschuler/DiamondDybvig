@@ -1,4 +1,4 @@
-@everywhere using Distributed
+using Distributed
 @everywhere using Distributions
 @everywhere using Random
 @everywhere using DataFrames
