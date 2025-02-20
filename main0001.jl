@@ -48,6 +48,7 @@ while doneCnt < procCnt
             coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],1.0)
         elseif isReady(coreDict[c])
             result=fetch(coreDict[c])
+            global doneCnt
             doneCnt=doneCnt+1
             coreDict[c]=nothing
             df=DataFrame(insur=currTup[1],
