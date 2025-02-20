@@ -23,7 +23,7 @@ cores=Sys.CPU_THREADS
 tuples=[]
 
 for insur in 0.5:0.1:0.6
-    for prod in in 0.5:0.1:0.6
+    for prod in 0.5:0.1:0.6
         push!(tuples,(insur,prod))
     end
 end
