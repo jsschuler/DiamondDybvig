@@ -344,14 +344,6 @@ end
 
 
 
-# we need a function to turn NaN into infinity
-function process(x::Float64)
-    if isnan(x)
-        return Inf
-    else
-        return x
-    end
-end
 
 
 function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
