@@ -357,7 +357,7 @@ end
 function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
-        mod=modelGen(1000,params[:subjP],params[:objP],insur,prod,riskAversion)
+        mod=modelGen(100,params[:subjP],params[:objP],insur,prod,riskAversion)
         bargain(mod)
         #if isfile("modSave.jld2")
         #    mod=JLD2.load("modSave.jld2")["model"]

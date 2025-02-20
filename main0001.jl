@@ -7,7 +7,7 @@ using Distributed
 
 using CSV
 @everywhere agtCnt=100
-@everywhere depth=10000
+@everywhere depth=1000
 # now how many runs per model type?
 @everywhere runCnt=100
 @everywhere include("objects.jl")
