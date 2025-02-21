@@ -430,7 +430,7 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
 
         #println("Mins")
 
-        #println(outFrame)
+        
         #println(minimum(outFrame.jointProbSub))
         #println(minimum(outFrame.jointProbObj))
         
@@ -451,7 +451,7 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         # now calculate each row's addition to Jensen-Shannon divergence
         outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
                        outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
-
+        println(outFrame)
         return sum(outFrame.JSDiv)
     end
     return runInstances
