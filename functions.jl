@@ -452,6 +452,9 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
                        outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
         println(outFrame)
+        println("Divergence for parameter")
+        println(params[:subjP])
+        println(sum(outFrame.JSDiv))
         return sum(outFrame.JSDiv)
     end
     return runInstances
