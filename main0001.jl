@@ -40,7 +40,7 @@ end
 
 # testing 
 optFunc=optimFuncGen(.5,.5,.3,1.0)
-optFunc(Dict(:subjP => 0.0))
+optFunc(Dict(:subjP => 0.01))
 
 # now we run the process
 #while doneCnt < procCnt
