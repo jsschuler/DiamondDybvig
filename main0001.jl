@@ -24,7 +24,7 @@ tuples=[]
 
 for insur in 0.5:0.1:0.6
     for prod in 0.5:0.1:0.6
-        for objP in 0.2:0.2:1.0
+        for objP in 0.0:0.2:1.0
             push!(tuples,(insur,prod,objP))
         end
     end

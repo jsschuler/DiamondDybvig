@@ -453,10 +453,14 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
                        outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
         println(outFrame)
         println("Divergence for parameter")
-        println("subjective P: "*string(params[:subjP]))
+        println("subjective P "*string(params[:subjP]))
         println("Objective P: "*string(objP))
         println(sum(outFrame.JSDiv))
-        return sum(outFrame.JSDiv)
+        if params[:subjP]==0.0
+            return 10000.0
+        else
+            return sum(outFrame.JSDiv)
+        end
     end
     return runInstances
 end
@@ -467,7 +471,7 @@ end
 function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     optFunc=optimFuncGen(insur,prod,objP,riskAversion)
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.01,.01, 1.0)
+    :subjP => HP.QuantUniform(:subjP,0.0,.01, 1.0)
     )
 
     best = fmin(
