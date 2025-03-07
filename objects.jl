@@ -1,4 +1,4 @@
-# Objects for DD Model
+  # Objects for DD Model
 
 mutable struct Agent
 end
@@ -16,7 +16,7 @@ mutable struct Model <: ModBase
     endow::Int64
     deposit::Int64
     objP::Float64
-    subjP::Float64
+    withdrawP::Float64
     insur::Float64
     prod::Float64
     riskAversion::Float64
@@ -29,7 +29,7 @@ mutable struct SimModel <: ModBase
     endow::Int64
     deposit::Int64
     objP::Float64
-    subjP::Float64
+    withdrawP::Float64
     insur::Float64
     prod::Float64
     riskAversion::Float64
