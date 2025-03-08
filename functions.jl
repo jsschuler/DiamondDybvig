@@ -292,6 +292,16 @@ function payOut(mod::ModBase)
     return retVal 
 end
 
+# a helper function to increment a dictionary count
+
+function dictAdd!(dict,key)
+    if key in keys(dict)
+        dict[key]=dict[key]+1
+    else
+        dict[key]=1
+    end
+end
+
 # now we need the main model function
 
 function runMain(mod::Model)
@@ -299,14 +309,19 @@ function runMain(mod::Model)
     global agtCnt
     X=Binomial(agtCnt,mod.objP)
     exogWD=rand(X,1)[1]
+    #println("Exogenous Withdrawals")
+    #println(exogWD)
     wOrder=sample(vcat(repeat([true],exogWD),repeat([false],agtCnt-exogWD)),agtCnt,replace=false)
     #println(wOrder)
     # now each agent decides whether or not to withdraw
+    # we need a dictionary to keep track of pay outs
+    countDict=Dict()
+    
     for j in 1:length(wOrder)
        # println(j) 
         # is the agent withdrawing 
         if wOrder[j]
-            withdraw(mod)
+            dictAdd!(countDict,mod.endow+withdraw(mod))
             #println("Exogenous Withdrawal")
         else
             wUtil=roundSimul(mod,true)
@@ -314,19 +329,33 @@ function runMain(mod::Model)
             #println(wUtil)
             #println(sUtil)
             if wUtil > sUtil
-                withdraw(mod)
+                dictAdd!(countDict,mod.endow+withdraw(mod))
                 #println("Endogenous Withdrawal")
             end
         end
-        #println("Still Banking")
-        #println(length(mod.bankingList))
         if mod.theBank.vault <= 0
             break
         end
     end
+    #println("Still Banking")
+    #println(length(mod.bankingList))
+    if mod.theBank.vault <= 0
+        for k in 1:length(mod.bankingList)
+            dictAdd!(countDict,mod.endow+withdraw(mod))
+        end
+    else
+        for k in 1:length(mod.bankingList)
+            dictAdd!(countDict,mod.endow+payOut(mod))
+        end
+    end
+    #println("Count Dict")
+    #println(countDict) 
+    # now calculate a probability dictionary 
+
+
     # pull in global agent count
     global agtCnt
-    withdrawalCnt=length(mod.bankingList)
+    withdrawalCnt=agtCnt-length(mod.bankingList)
     # now report the number of withdrawals and the run condition
     # if there has been a run, we consider all agents to have withdrawn 
     runCond::Bool=false
@@ -336,20 +365,27 @@ function runMain(mod::Model)
     end
     # now what is the return?
     paid=payOut(mod)
-    return (runCond,withdrawalCnt,paid)
+    # now calculate probability dictionary 
+    probDict=Dict()
+    for ky in keys(countDict)
+        probDict[ky]=countDict[ky]/agtCnt
+    end
+    # test that probDict sums to one 
+    testVec=[]
+    for ky in keys(probDict)
+        push!(testVec,probDict[ky])
+    end
+    println("Test")
+    println(sum(testVec))
+    
+
+    return (withdrawalCnt,probDict)
 end
 
 # now we need the optimization functions
 
 
 
-function dictAdd!(dict,key)
-    if key in keys(dict)
-        dict[key]=dict[key]+1
-    else
-        dict[key]=1
-    end
-end
 
 
 function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
@@ -377,9 +413,44 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         #end
         #println(resultVec)
         cnt=length(resultVec)
-        println("Results")
-        println(resultVec)
+        #println("Results")
+        #println(resultVec)
         
+        # now, we need to calculate the probability distribution of outcomes
+        # and therefore turn the vector of count dictionaries into a probability dictionary
+        # comparable to the one below.
+        modWithdrawCountDict=Dict()
+        for el in resultVec
+            dictAdd!(modWithdrawCountDict,el[1])
+        end
+        # get the denominator
+        denomVec=[]
+        for ky in keys(modWithdrawCountDict)
+            push!(denomVec,modWithdrawCountDict[ky])
+        end
+        println("Denominator")
+        println(denomVec)
+
+        modWithdrawProbDict=Dict()
+        for ky in keys(modWithdrawCountDict)
+            modWithdrawProbDict[ky]=modWithdrawCountDict[ky]/runCnt
+        end 
+        println(modWithdrawProbDict)
+        modPayOutProbDict=Dict()
+        for el in resultVec
+            for ky in keys(el[2])
+                modPayOutProbDict[ky]=el[2][ky]*modWithdrawProbDict[el[1]]
+            end
+        end
+        println("Mod Prob Dictionary")
+        println(modPayOutProbDict)
+        # now test that it sums to one
+        testVec=[]
+        for ky in keys(modPayOutProbDict)
+            push!(testVec,modPayOutProbDict[ky])
+        end
+        println("Normalization Test")
+        println(sum(testVec)) 
         # now, we need to calcuate the probability distribution of outcomes
         # under the representive agent's subjective assumption about the k where the bank breaks
         global agtCnt
@@ -398,11 +469,11 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
             while i < agtCnt
                 dictAdd!(denomDict,t)
                 if i > 0 && i <= t
-                    dictAdd!(countDict,(t,withdraw(simMod)))
+                    dictAdd!(countDict,(t,mod.endow+withdraw(simMod)))
                 elseif i > t && i < params[:runK]
-                    dictAdd!(countDict,(t,payOut(simMod)))
+                    dictAdd!(countDict,(t,mod.endow+payOut(simMod)))
                 else
-                    dictAdd!(countDict,(t,withdraw(simMod)))
+                    dictAdd!(countDict,(t,mod.endow+withdraw(simMod)))
                 end
                 i=i+1
             end
@@ -422,7 +493,7 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         for ky in keys(probDict)
             push!(probArray,probDict[ky])
         end
-        println(sum(probArray))
+        #println(sum(probArray))
         # now renormalize
         for ky in keys(probDict)
             probDict[ky]=probDict[ky]/sum(probArray)
