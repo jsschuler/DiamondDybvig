@@ -207,7 +207,7 @@ function clone(mod::Model)
                     mod.endow,
                     mod.deposit,
                     mod.objP,
-                    mod.subjP,
+                    mod.runK,
                     mod.insur,
                     mod.prod,
                     mod.riskAversion,
@@ -222,7 +222,7 @@ function copy(mod::Model)
                     mod.endow,
                     mod.deposit,
                     mod.objP,
-                    mod.subjP,
+                    mod.runK,
                     mod.insur,
                     mod.prod,
                     mod.riskAversion,
@@ -343,13 +343,19 @@ end
 
 
 
-
+function dictAdd!(dict,key)
+    if key in keys(dict)
+        dict[key]=dict[key]+1
+    else
+        dict[key]=1
+    end
+end
 
 
 function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
-        mod=modelGen(100,params[:subjP],objP,insur,prod,riskAversion)
+        mod=modelGen(100,params[:runK],params[:objP],insur,prod,riskAversion)
         bargain(mod)
         #if isfile("modSave.jld2")
         #    mod=JLD2.load("modSave.jld2")["model"]
@@ -371,96 +377,61 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         #end
         #println(resultVec)
         cnt=length(resultVec)
-
+        println("Results")
+        println(resultVec)
         
         # now, we need to calcuate the probability distribution of outcomes
-        # under the representive agent's subjective assumption
-        simMod=clone(mod)
-        X=Binomial(agtCnt,params[:subjP])
-        # now, for each possible number of withdrawing agents, determine whether
-        # the bank has failed or not. 
-        failVec=Float64[]
-        nonFailVec=Float64[]
+        # under the representive agent's subjective assumption about the k where the bank breaks
+        global agtCnt
+        X=Binomial(agtCnt,mod.objP)
+        # now, enumerate the possibilities in a dictionary
+        countDict=Dict()
+        denomDict=Dict()
+        # the keys of this dictionary are a tuple of the number of withdrawals and a symbol
+        # symbol :zero refers to 0
+        # symbol :interWD refers to what comes from a withdrawal when the vault is insufficient
+        # symbol :payout refers to (1+insur+prod)*(vault - k*(1+insur)*deposit)/(n-k)
         for t in 0:agtCnt
-            push!(failVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit <= 0)*pdf(X,t))
-            push!(nonFailVec,(simMod.theBank.vault-t*(1+simMod.insur)*simMod.deposit > 0)*pdf(X,t))
-        end
-        # now get the probability of the bank failure UNDER the agent's hypothesis
-        failProb=sum(failVec)
-        nonFailProb=1-failProb
-        #println(failProb)
-        # now get the probability of each number of withdrawals condiional on failure
-        condFailProb=failVec./failProb
-        confNonFailProb=nonFailVec./nonFailProb
-        # now we put these together
-        failLabel=vcat(repeat([true],1),repeat([false],agtCnt+1))
-        eventProbs=vcat([1.0],confNonFailProb)
-        withdrawCount=vcat(agtCnt,collect(0:agtCnt))
-        # add a column of 0's to change into pHat
-        outFrame=DataFrame(fail=failLabel,withdrawals=withdrawCount,Prob=eventProbs,realCounts=repeat([0],(agtCnt+2)))
-        # now for each run of the model, increment the relevant count by 1
-        # also get failure counts when we run the actual model
-        failCount=0
-        for res in resultVec
-            runVal=res[1]
-            if runVal
-                failCount=failCount+1
+            simMod=clone(mod)
+            i=0
+            
+            while i < agtCnt
+                dictAdd!(denomDict,t)
+                if i > 0 && i <= t
+                    dictAdd!(countDict,(t,withdraw(simMod)))
+                elseif i > t && i < params[:runK]
+                    dictAdd!(countDict,(t,payOut(simMod)))
+                else
+                    dictAdd!(countDict,(t,withdraw(simMod)))
+                end
+                i=i+1
             end
-            wCount=res[2]
-            #println("tst")
-            #println(outFrame.fail.==runVal)
-            #println(outFrame.withdrawals.==wCount)
-            #println(outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount)
-            outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts]=outFrame[outFrame.fail.==runVal .&& outFrame.withdrawals.==wCount,:realCounts].+1
         end
-
-        modFailProb=failCount/length(resultVec)
-        #println("True Fail Prob")
-        #println(modFailProb)
-        # now build a vector with P(FAIL)
-        outFrame.modProbFail=vcat([modFailProb],repeat([1-modFailProb],agtCnt+1))
-        outFrame.realProb.=outFrame.realCounts ./ length(resultVec)
-        outFrame.jointProbSub=outFrame.Prob .* vcat([failProb],repeat([nonFailProb],agtCnt+1))
-        outFrame.jointProbObj=outFrame.modProbFail .*  outFrame.realProb
-        # now, we cannot allow zero probabilities for the purpose of calculating divergence. 
-        # find the smallest probability in both and add in to every probability
-        # renormalize probabilities over their sum, this also accounts for float errors
-        # for this reason, we also remove impossible events
-        filter!(row -> row.Prob !=0.0, outFrame)
-
-        #println("Mins")
-
-        
-        #println(minimum(outFrame.jointProbSub))
-        #println(minimum(outFrame.jointProbObj))
-        
-        outFrame.jointProbSub=outFrame.jointProbSub .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
-        outFrame.jointProbObj=outFrame.jointProbObj .+max(minimum(outFrame.jointProbSub),minimum(outFrame.jointProbObj))
-        outFrame.jointProbSub=outFrame.jointProbSub ./sum(outFrame.jointProbSub)
-        outFrame.jointProbObj=outFrame.jointProbObj ./sum(outFrame.jointProbObj)
-
-
-        # now form mixture distribution for Jensen-Shannon Divergence
-        outFrame.M=(outFrame.jointProbSub+outFrame.jointProbObj)/2
-        #println(outFrame.jointProbSub)
-        #println(outFrame.jointProbObj)
-        #println(sum(outFrame.M))
-
-
-        
-        # now calculate each row's addition to Jensen-Shannon divergence
-        outFrame.JSDiv=outFrame.jointProbSub .* log2.(outFrame.jointProbSub./outFrame.M) .+ 
-                       outFrame.jointProbObj .* log2.(outFrame.jointProbObj./outFrame.M)
-        println(outFrame)
-        println("Divergence for parameter")
-        println("subjective P "*string(params[:subjP]))
-        println("Objective P: "*string(objP))
-        println(sum(outFrame.JSDiv))
-        if params[:subjP]==0.0
-            return 10000.0
-        else
-            return sum(outFrame.JSDiv)
+        # now change the count dictionary into a probability dictionary
+        #println(countDict)
+        #println(denomDict)
+        # now calculate the probability dictionary
+        probDict=Dict()
+        for key in keys(countDict)
+            idx=key[1]
+            probDict[key]=countDict[key]/denomDict[idx]*pdf(X,idx)
         end
+        println(probDict)
+        # now check normalization
+        probArray=[]
+        for ky in keys(probDict)
+            push!(probArray,probDict[ky])
+        end
+        println(sum(probArray))
+        # now renormalize
+        for ky in keys(probDict)
+            probDict[ky]=probDict[ky]/sum(probArray)
+        end
+        probArray=[]
+        for ky in keys(probDict)
+            push!(probArray,probDict[ky])
+        end
+        #println(sum(probArray))
     end
     return runInstances
 end
@@ -471,7 +442,7 @@ end
 function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     optFunc=optimFuncGen(insur,prod,objP,riskAversion)
     space = Dict(
-    :subjP => HP.QuantUniform(:subjP,0.0,.01, 1.0)
+    :runK => HP.QuantUniform(:subjP,0.0,.01, 1.0)
     )
 
     best = fmin(

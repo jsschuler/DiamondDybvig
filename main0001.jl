@@ -40,10 +40,7 @@ end
 
 # testing 
 optFunc=optimFuncGen(.5,.5,.3,1.0)
-println(optFunc(Dict(:subjP => 0.01)))
-println(optFunc(Dict(:subjP => 0.2)))
-println(optFunc(Dict(:subjP => 0.5)))
-println(optFunc(Dict(:subjP => 0.7)))
+println(optFunc(Dict(:runK => 30,:objP=>.2)))
 # now we run the process
 #while doneCnt < procCnt
 #    
