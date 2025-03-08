@@ -16,7 +16,7 @@ mutable struct Model <: ModBase
     endow::Int64
     deposit::Int64
     objP::Float64
-    withdrawP::Float64
+    runK::Int64
     insur::Float64
     prod::Float64
     riskAversion::Float64
@@ -29,7 +29,7 @@ mutable struct SimModel <: ModBase
     endow::Int64
     deposit::Int64
     objP::Float64
-    withdrawP::Float64
+    runK::Int64
     insur::Float64
     prod::Float64
     riskAversion::Float64

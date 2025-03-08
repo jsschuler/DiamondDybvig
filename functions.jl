@@ -26,13 +26,13 @@ end
 
 # now a function to generate a model
 function modelGen(endow::Int64,
-                 subjP::Float64,
+                 runK::Int64,
                  objP::Float64,
                  insur::Float64,
                  prod::Float64,
                  riskAver::Float64)
     global agtCnt
-    mod=Model(Agent[],Agent[],endow,0,objP,subjP,insur,prod,riskAver,Bank(0))
+    mod=Model(Agent[],Agent[],endow,0,objP,runK,insur,prod,riskAver,Bank(0))
     for t in 1:agtCnt
         agtGen(mod)
     end
@@ -64,7 +64,7 @@ function roundSimul(mod::Model,decision::Bool)
     # now, calculate the probability distribution of withdrawals conditional on there being
     # at least the number of observed withdrawals
     global agtCnt
-    agtProb=Binomial(agtCnt,mod.subjP)
+    agtProb=Binomial(agtCnt,mod.objP)
     cdfCond=Dict{Int64,Float64}()
     #println("Prob")
     #println(ccdf(agtProb,wdCount))
@@ -162,7 +162,7 @@ end
 function subSimul(mod::Model)
     global agtCnt
     simMod=clone(mod)
-    subBinom=Binomial(agtCnt,simMod.subjP)
+    subBinom=Binomial(agtCnt,simMod.objP)
     wdCount=rand(subBinom,1)[1]
     wOrder=sample(vcat(repeat([true],wdCount),repeat([false],agtCnt-wdCount)),agtCnt,replace=false)
     # we record each withdrawal amount
