@@ -9,7 +9,7 @@ using CSV
 @everywhere agtCnt=100
 @everywhere depth=1000
 # now how many runs per model type?
-@everywhere runCnt=5
+@everywhere runCnt=100
 @everywhere include("objects.jl")
 @everywhere include("functions.jl")
 
