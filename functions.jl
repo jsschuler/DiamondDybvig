@@ -531,15 +531,28 @@ function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
             push!(totArray,sqrt(margSimProbDict[ky]*modProbDict[ky]))
         end
 
-        #for ky in keys(margSimProbDict)
-        #    println(ky)
-        #    println(margSimProbDict[ky])
-        #    println(modProbDict[ky])
-        #end
+        for ky in keys(margSimProbDict)
+            println("Comparison")
+            println(ky)
+            println(margSimProbDict[ky])
+            println(modProbDict[ky])
+        end
 
         #println("Hellinger")
         #println(1-sum(totArray))
-        return 1-sum(totArray)
+        HD=1-sum(totArray)
+        df=DataFrame(insur=insur,
+                     prod=prod,
+                     risk=riskAversion,
+                     K=params[:runK],
+                     objP=params[:objP],
+                     HD=HD)
+
+println("Distance")
+println(HD)
+println("Writing File")
+CSV.write("../data/runs.csv", df,header = false,append=true)
+        return HD
     end
     return runInstances
 end
@@ -551,7 +564,8 @@ function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float
     optFunc=optimFuncGen(insur,prod,riskAversion)
     space = Dict(
     :runK => HP.Choice(:runK,collect(1:1:agtCnt)),
-    :objP => HP.QuantUniform(:objP,0.0,1.0,0.01)
+    #:objP => HP.QuantUniform(:objP,0.0,1.0,0.01)
+    :objP => HP.Choice(:objP,[.2,.3,.4])
     )
 
     best = fmin(
