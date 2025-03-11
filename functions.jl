@@ -310,6 +310,14 @@ function dictAdd!(dict,key,arg::Int64)
     end
 end
 
+function dictAdd!(dict,key,arg::Float64)
+    if key in keys(dict)
+        dict[key]=dict[key]+arg
+    else
+        dict[key]=arg
+    end
+end
+
 function dictPlug!(dict,key)
     if !(key in keys(dict))
         dict[key]=0.0
@@ -401,16 +409,17 @@ end
 
 
 
-function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
+function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
     # set up the model
     function runInstances(params)
         mod=modelGen(100,params[:runK],params[:objP],insur,prod,riskAversion)
         #bargain(mod)
-        if isfile("modSave.jld2")
-            mod=JLD2.load("modSave.jld2")["model"]
+        filename="modSave"*string(insur)*"-"*string(prod)*"-"*string(riskAversion)*"-"*string(params[:runK])*"-"*string(params[:objP])*".jld2"
+        if isfile(filename)
+            mod=JLD2.load(filename)["model"]
         else
             bargain(mod)
-            @save "modSave.jld2" model=mod
+            @save filename model=mod
         end
         global runCnt
         modVec=Model[]
@@ -426,8 +435,8 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         #end
         #println(resultVec)
         cnt=length(resultVec)
-        println("Results")
-        println(resultVec)
+        #println("Results")
+        #println(resultVec)
         # now we need to calculate the probability distribution of outcomes in the actual simulation
         countDict=Dict()
         for el in resultVec
@@ -435,20 +444,21 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
                 dictAdd!(countDict,ky,el[2][ky])
             end
         end
-        println(countDict)
+        #println(countDict)
         modProbDict=Dict()
         for ky in keys(countDict)
             modProbDict[ky]=countDict[ky]/(agtCnt*runCnt)
         end
-        println(simProbDict)
+        #println("Mod Prob")
+        #println(modProbDict)
         # now check normalization
         probVec1=[]
         for ky in keys(modProbDict)
-            push!(probVec1,simProbDict[ky])
+            push!(probVec1,modProbDict[ky])
         end
-        println("Sim Prob") 
-        println(sum(probVec1))
-        println(modProbDict[0.0])
+        #println("Sim Prob") 
+        #println(sum(probVec1))
+        #println(modProbDict[0.0])
         # now, we need to calcuate the probability distribution of outcomes
         # under the representive agent's subjective assumption about the k where the bank breaks
         global agtCnt
@@ -485,7 +495,8 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
             idx=key[1]
             simProbDict[key]=countDict[key]/denomDict[idx]*pdf(X,idx)
         end
-        #println(probDict)
+        #println("Sim Prob")
+        #println(simProbDict)
         # now check normalization
         probArray=[]
         for ky in keys(simProbDict)
@@ -493,26 +504,41 @@ function optimFuncGen(insur::Float64,prod::Float64,objP::Float64,riskAversion::F
         end
         #println(sum(probArray))
         # now renormalize
-        for ky in keys(probDict)
+        for ky in keys(simProbDict)
             simProbDict[ky]=simProbDict[ky]/sum(probArray)
         end
         probArray=[]
-        for ky in keys(probDict)
-            push!(probArray,probDisimProbDictct[ky])
+        for ky in keys(simProbDict)
+            push!(probArray,simProbDict[ky])
         end
         #println(sum(probArray))
-    
+        # now, we need to get the probability distribution only of the pay out rather than the pay out and withdrawal jointly
+        margSimProbDict=Dict()
+        for ky in keys(simProbDict)
+            
+            margSimProbDict[ky[2]]=dictAdd!(margSimProbDict,ky[2],simProbDict[ky])
+            
+        end
+
+
         # now calculate Hellinger distance
-        for ky in union(keys(simProbDict),keys(modProbDict))
+        for ky in union(keys(margSimProbDict),keys(modProbDict))
             dictPlug!(simProbDict,ky)
             dictPlug!(modProbDict,ky)
         end
         totArray=[]
-        for ky in keys(simProbDict)
-            push!(totArray,sqrt(simProbDict[ky]*modProbDict[ky]))
+        for ky in keys(margSimProbDict)
+            push!(totArray,sqrt(margSimProbDict[ky]*modProbDict[ky]))
         end
-        println("Hellinger")
-        println(1-sum(totArray))
+
+        #for ky in keys(margSimProbDict)
+        #    println(ky)
+        #    println(margSimProbDict[ky])
+        #    println(modProbDict[ky])
+        #end
+
+        #println("Hellinger")
+        #println(1-sum(totArray))
         return 1-sum(totArray)
     end
     return runInstances
@@ -524,13 +550,13 @@ end
 function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     optFunc=optimFuncGen(insur,prod,objP,riskAversion)
     space = Dict(
-    :runK => HP.QuantUniform(:subjP,0.0,.01, 1.0)
+    :runK => HP.QuantUniform(:runK,0,1, agtCnt)
     )
 
     best = fmin(
         optFunc, # The function to be optimised.
         space,         # The space over which the optimisation should take place.
-        10,          # The number of iterations to take.
+        25,          # The number of iterations to take.
 )
     return (best,insur,prod,objP)
 end

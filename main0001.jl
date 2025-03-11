@@ -9,7 +9,7 @@ using CSV
 @everywhere agtCnt=100
 @everywhere depth=1000
 # now how many runs per model type?
-@everywhere runCnt=100
+@everywhere runCnt=500
 @everywhere include("objects.jl")
 @everywhere include("functions.jl")
 
@@ -39,30 +39,31 @@ for coreNum in 2:cores
 end
 
 # testing 
-optFunc=optimFuncGen(.5,.5,.3,1.0)
-println(optFunc(Dict(:runK => 30,:objP=>.2)))
+#@everywhere optFunc=optimFuncGen(.5,.5,1.0)
+
+
 # now we run the process
-#while doneCnt < procCnt
-#    
-#    for c in keys(coreDict)
-#        # if the core contains nothing, send it an optimization procedure
-#        if isnothing(coreDict[c]) && length(tuples) > 0
-#            currTup=popfirst!(tuples)
-#            println("Sending tuple "*string(currTup)*" to core "*string(c))
-#            println(length(tuples))
-#            coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],currTup[3],1.0)
-#        elseif isReady(coreDict[c])
-#            result=fetch(coreDict[c])
-#            global doneCnt
-#            doneCnt=doneCnt+1
-#            coreDict[c]=nothing
-#            df=DataFrame(insur=result[2],
-#                        prod=result[3],
-#                        subjP=result[1][:subjP],
-#                        objP=result[4]
-#                        )
-#            println("Writing File")
-#            CSV.write("../optimization.csv", df,header = false,append=true)
-#        end
-#    end
-#end
+while doneCnt < procCnt
+    
+    for c in keys(coreDict)
+        # if the core contains nothing, send it an optimization procedure
+        if isnothing(coreDict[c]) && length(tuples) > 0
+            currTup=popfirst!(tuples)
+            println("Sending tuple "*string(currTup)*" to core "*string(c))
+            println(length(tuples))
+            coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],currTup[3],1.0)
+        elseif isReady(coreDict[c])
+            result=fetch(coreDict[c])
+            global doneCnt
+            doneCnt=doneCnt+1
+            coreDict[c]=nothing
+            df=DataFrame(insur=result[2],
+                        prod=result[3],
+                        subjP=result[1][:subjP],
+                        objP=result[4]
+                        )
+            println("Writing File")
+            CSV.write("../optimization.csv", df,header = false,append=true)
+        end
+    end
+end
