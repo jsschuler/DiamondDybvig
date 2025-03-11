@@ -548,7 +548,7 @@ end
 # this function will be sent to other cores
 
 function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
-    optFunc=optimFuncGen(insur,prod,objP,riskAversion)
+    optFunc=optimFuncGen(insur,prod,riskAversion)
     space = Dict(
     :runK => HP.QuantUniform(:runK,0,1, agtCnt)
     )

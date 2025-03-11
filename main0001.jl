@@ -59,7 +59,7 @@ while doneCnt < procCnt
             coreDict[c]=nothing
             df=DataFrame(insur=result[2],
                         prod=result[3],
-                        subjP=result[1][:subjP],
+                        runK=result[1][:runK],
                         objP=result[4]
                         )
             println("Writing File")
