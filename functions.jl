@@ -550,7 +550,8 @@ end
 function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
     optFunc=optimFuncGen(insur,prod,riskAversion)
     space = Dict(
-    :runK => HP.QuantUniform(:runK,0,1, agtCnt)
+    :runK => HP.Choice(:runK,collect(1:1:agtCnt)),
+    :objP => HP.QuantUniform(:objP,0.0,1.0,0.01)
     )
 
     best = fmin(
