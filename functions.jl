@@ -195,7 +195,7 @@ function roundSimul(mod::Model)
     # now we calculate expected utility
     # the denominator is the agtCnt times the depth 
     # since each subsimulation gives the return for every agent
-    # and we run it as many times as the depth function 
+    # and we run it as many times as the depth parameter 
     return (1/(agtCnt*depth))*sum(utilFunc)
 end
 
