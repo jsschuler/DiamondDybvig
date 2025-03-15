@@ -369,38 +369,8 @@ function runMain(mod::Model)
             dictAdd!(countDict,mod.endow+payOut(mod))
         end
     end
-    #println("Count Dict")
-    #println(countDict) 
-    # now calculate a probability dictionary 
-
-
-    # pull in global agent count
-    global agtCnt
-    withdrawalCnt=agtCnt-length(mod.bankingList)
-    # now report the number of withdrawals and the run condition
-    # if there has been a run, we consider all agents to have withdrawn 
-    runCond::Bool=false
-    if mod.theBank.vault <= 0
-        runCond=true
-        withdrawalCnt=agtCnt
-    end
-    # now what is the return?
-    paid=payOut(mod)
-    # now calculate probability dictionary 
-    probDict=Dict()
-    for ky in keys(countDict)
-        probDict[ky]=countDict[ky]/agtCnt
-    end
-    # test that probDict sums to one 
-    testVec=[]
-    for ky in keys(probDict)
-        push!(testVec,probDict[ky])
-    end
-    #println("Test")
-    #println(sum(testVec))
     
-
-    return (withdrawalCnt,countDict)
+    return (countDict)
 end
 
 # now we need the optimization functions
@@ -408,154 +378,27 @@ end
 
 
 
+function runInstances(params)
+    mod=modelGen(100,params[:runK],params[:objP],params[:insur],params[prod],params[riskAversion])
+    bargain(mod)
 
-function optimFuncGen(insur::Float64,prod::Float64,riskAversion::Float64)
-    # set up the model
-    function runInstances(params)
-        mod=modelGen(100,params[:runK],params[:objP],insur,prod,riskAversion)
-        #bargain(mod)
-        filename="modSave"*string(insur)*"-"*string(prod)*"-"*string(riskAversion)*"-"*string(params[:runK])*"-"*string(params[:objP])*".jld2"
-        if isfile(filename)
-            mod=JLD2.load(filename)["model"]
-        else
-            bargain(mod)
-            @save filename model=mod
-        end
-        global runCnt
-        modVec=Model[]
-        for t in 1:runCnt
-            push!(modVec,copy(mod))
-        end
-        resultVec=runMain.(modVec)
-        #if isfile("runSave.jld2")
-        #    resultVec=JLD2.load("runSave.jld2")["runVec"]
-        #else
-        #    resultVec=runMain.(modVec)
-        #    @save "runSave.jld2" runVec=resultVec
-        #end
-        #println(resultVec)
-        cnt=length(resultVec)
-        #println("Results")
-        #println(resultVec)
-        # now we need to calculate the probability distribution of outcomes in the actual simulation
-        countDict=Dict()
-        for el in resultVec
-            for ky in keys(el[2])
-                dictAdd!(countDict,ky,el[2][ky])
-            end
-        end
-        #println(countDict)
-        modProbDict=Dict()
-        for ky in keys(countDict)
-            modProbDict[ky]=countDict[ky]/(agtCnt*runCnt)
-        end
-        #println("Mod Prob")
-        #println(modProbDict)
-        # now check normalization
-        probVec1=[]
-        for ky in keys(modProbDict)
-            push!(probVec1,modProbDict[ky])
-        end
-        #println("Sim Prob") 
-        #println(sum(probVec1))
-        #println(modProbDict[0.0])
-        # now, we need to calcuate the probability distribution of outcomes
-        # under the representive agent's subjective assumption about the k where the bank breaks
-        global agtCnt
-        X=Binomial(agtCnt,mod.objP)
-        # now, enumerate the possibilities in a dictionary
-        countDict=Dict()
-        denomDict=Dict()
-        # the keys of this dictionary are a tuple of the number of withdrawals and a symbol
-        # symbol :zero refers to 0
-        # symbol :interWD refers to what comes from a withdrawal when the vault is insufficient
-        # symbol :payout refers to (1+insur+prod)*(vault - k*(1+insur)*deposit)/(n-k)
-        for t in 0:agtCnt
-            simMod=clone(mod)
-            i=0
-            
-            while i < agtCnt
-                dictAdd!(denomDict,t)
-                if i > 0 && i <= t
-                    dictAdd!(countDict,(t,mod.endow+withdraw(simMod)))
-                elseif i > t && i < params[:runK]
-                    dictAdd!(countDict,(t,mod.endow+payOut(simMod)))
-                else
-                    dictAdd!(countDict,(t,mod.endow+withdraw(simMod)))
-                end
-                i=i+1
-            end
-        end
-        # now change the count dictionary into a probability dictionary
-        #println(countDict)
-        #println(denomDict)
-        # now calculate the probability dictionary
-        simProbDict=Dict()
-        for key in keys(countDict)
-            idx=key[1]
-            simProbDict[key]=countDict[key]/denomDict[idx]*pdf(X,idx)
-        end
-        #println("Sim Prob")
-        #println(simProbDict)
-        # now check normalization
-        probArray=[]
-        for ky in keys(simProbDict)
-            push!(probArray,simProbDict[ky])
-        end
-        #println(sum(probArray))
-        # now renormalize
-        for ky in keys(simProbDict)
-            simProbDict[ky]=simProbDict[ky]/sum(probArray)
-        end
-        probArray=[]
-        for ky in keys(simProbDict)
-            push!(probArray,simProbDict[ky])
-        end
-        #println(sum(probArray))
-        # now, we need to get the probability distribution only of the pay out rather than the pay out and withdrawal jointly
-        margSimProbDict=Dict()
-        for ky in keys(simProbDict)
-            
-            margSimProbDict[ky[2]]=dictAdd!(margSimProbDict,ky[2],simProbDict[ky])
-            
-        end
-
-
-        # now calculate Hellinger distance
-        for ky in union(keys(margSimProbDict),keys(modProbDict))
-            dictPlug!(simProbDict,ky)
-            dictPlug!(modProbDict,ky)
-        end
-        totArray=[]
-        for ky in keys(margSimProbDict)
-            push!(totArray,sqrt(margSimProbDict[ky]*modProbDict[ky]))
-        end
-
-        for ky in keys(margSimProbDict)
-            println("Comparison")
-            println(ky)
-            println(margSimProbDict[ky])
-            println(modProbDict[ky])
-        end
-
-        #println("Hellinger")
-        #println(1-sum(totArray))
-        HD=1-sum(totArray)
-        df=DataFrame(insur=insur,
-                     prod=prod,
-                     risk=riskAversion,
-                     K=params[:runK],
-                     objP=params[:objP],
-                     HD=HD)
+    #println("Hellinger")
+    #println(1-sum(totArray))
+    HD=1-sum(totArray)
+    df=DataFrame(insur=insur,
+                 prod=prod,
+                 risk=riskAversion,
+                 K=params[:runK],
+                 objP=params[:objP],
+                 HD=HD)
 
 println("Distance")
 println(HD)
 println("Writing File")
 CSV.write("../data/runs.csv", df,header = false,append=true)
-        return HD
-    end
-    return runInstances
+    return HD
 end
+
 
 # now we need a function that runs the optimization for certain values
 # this function will be sent to other cores
