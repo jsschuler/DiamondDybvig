@@ -1,4 +1,6 @@
 # the functions file
+
+# we need a utility function
 function util(mod::ModBase,x::Float64)
     if x < 0
         x=0
@@ -11,6 +13,8 @@ function util(mod::ModBase,x::Float64)
         return((y^(1-mod.riskAversion))/(1-mod.riskAversion))
     end
 end
+
+# that only takes a single argument
 
 function modUtilGen(mod::ModBase)
     function tmpFunc(x::Float64)
@@ -32,19 +36,24 @@ function modelGen(endow::Int64,
                  prod::Float64,
                  riskAver::Float64)
     global agtCnt
-    mod=Model(Agent[],Agent[],endow,0,objP,runK,insur,prod,riskAver,Bank(0))
+    mod=Model(Agent[],Agent[],endow,0,objP,insur,prod,riskAver)
     for t in 1:agtCnt
         agtGen(mod)
     end
     return mod
 end
 
+# now, the way this model works is that we loop over possible deposits and keep 
+# the model results that have the greatest average utility.
+# recall that the agents know how many agents have withdrawn but not their 
+# own position in the queue if they withdraw.
+
 
 
 # Now, we need a function to simulate one round for agents to compare decisions
 # Note that when the agent runs this function, it knows it does not have to withdraw
 # we have a function below where the agent does not know this.
-function roundSimul(mod::Model,decision::Bool)
+function roundSimul(mod::SimModel,decision::Bool)
     # How many agents have withdrawn?
     wdCount=length(mod.nonBankingList)
     stillBanking=length(mod.bankingList)
@@ -102,7 +111,7 @@ function roundSimul(mod::Model,decision::Bool)
         # now, get the agent's place in line among those withdrawing
         # and in turn, the number of agents 
         for future in futureCount
-            simMod=clone(mod)
+            simMod=copy(mod)
             #println(length(simMod.bankingList))
             # now the agent has the same probability of being anywhere in line. 
             # Thus, we record the pay out for every withdrawal
@@ -159,9 +168,9 @@ function roundSimul(mod::Model,decision::Bool)
 
 end
 
-function subSimul(mod::Model)
+function subSimul(mod::SimModel)
     global agtCnt
-    simMod=clone(mod)
+    simMod=copy(mod)
     subBinom=Binomial(agtCnt,simMod.objP)
     wdCount=rand(subBinom,1)[1]
     wOrder=sample(vcat(repeat([true],wdCount),repeat([false],agtCnt-wdCount)),agtCnt,replace=false)
@@ -185,7 +194,7 @@ function subSimul(mod::Model)
 
 end
 
-function roundSimul(mod::Model)
+function roundSimul(mod::SimModel)
     global depth
     global agtCnt
     utilFunc=[]
@@ -201,17 +210,23 @@ end
 
 # we need a function to clone a model. 
 
-function clone(mod::Model)
+function clone(mod::Model,endow::Int64,deposit::Int64)
+    
+    global agtCnt
+    theBank=Bank(0)
+    for i in 1:agtCnt
+        theBank.vault=theBank.vault+deposit
+    end
+    
     return SimModel(deepcopy(mod.nonBankingList),
                     deepcopy(mod.bankingList),
-                    mod.endow,
-                    mod.deposit,
+                    endow,
+                    deposit,
                     mod.objP,
-                    mod.runK,
                     mod.insur,
                     mod.prod,
                     mod.riskAversion,
-                    deepcopy(mod.theBank))
+                    theBank)
 end
 
 # we also need a function to copy a model
@@ -232,40 +247,9 @@ end
 
 # we need a function that gives the vector of payments where there have been k withdrawals
 
-
-
-# now the bargaining step
-# we constrain the agents to all have the same deposit
-
-
-
-function bargain(mod::Model)
-    totAvail=mod.endow + mod.deposit
-    utilResults=[]
-    for dep in 0:10:totAvail
-        mod.deposit=dep
-        mod.endow=totAvail-mod.deposit
-        # initialize the vault to empty
-        mod.theBank.vault=0
-        # now fill the vault
-        for k in 1:agtCnt
-            mod.theBank.vault=mod.theBank.vault+mod.deposit
-        end
-        push!(utilResults,roundSimul(mod))
-    end
-    #println(collect(0:10:totAvail)[argmax(utilResults)])
-    mod.deposit=collect(0:10:totAvail)[argmax(utilResults)]
-    mod.endow=totAvail-mod.deposit
-    # now set the vault with the final decision
-    mod.theBank.vault=0
-    for k in 1:agtCnt
-        mod.theBank.vault=mod.theBank.vault+mod.deposit
-    end
-end
-
 # we need the withdrawal function
 
-function withdraw(mod::ModBase)
+function withdraw(mod::SimModel)
     if length(mod.bankingList) > 0
         #println("Withdrawing")
         #println(length(mod.bankingList))
@@ -281,7 +265,7 @@ function withdraw(mod::ModBase)
 
 end
 
-function payOut(mod::ModBase)
+function payOut(mod::SimModel)
     #println("Banking")
     #println(length(mod.bankingList))
     if length(mod.bankingList) > 0

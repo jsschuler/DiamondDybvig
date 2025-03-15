@@ -13,14 +13,10 @@ abstract type ModBase end
 mutable struct Model <: ModBase
     nonBankingList::Array{Agent}
     bankingList::Array{Agent}
-    endow::Int64
-    deposit::Int64
     objP::Float64
-    runK::Int64
     insur::Float64
     prod::Float64
     riskAversion::Float64
-    theBank::Bank
 end
 
 mutable struct SimModel <: ModBase
@@ -29,7 +25,6 @@ mutable struct SimModel <: ModBase
     endow::Int64
     deposit::Int64
     objP::Float64
-    runK::Int64
     insur::Float64
     prod::Float64
     riskAversion::Float64
