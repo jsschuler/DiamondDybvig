@@ -396,7 +396,19 @@ function runMod(mod::Model)
     return(failArray[maxIndex]/depth))
 end
 
-
+function runFamily(insur::Float64,prod::Float64,objP::Float64)
+    global agtCnt
+    global depth
+    global totResr
+    mod=modelGen(agtCnt,runK,objP,insur,prod,1.0)
+    #println("Model")
+    #println(mod)
+    #println("Run")
+    #println(runMain(mod))
+    #println("Utility")
+    #println(runMod(mod))
+    return (runMod(mod),insur,prod,objP)
+end
 
 # now we need some functions to handle the multi-threading
 function isReady(arg::Future)

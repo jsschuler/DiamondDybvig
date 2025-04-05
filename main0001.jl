@@ -40,31 +40,29 @@ for coreNum in 2:cores
 end
 
 # testing 
-#optFunc=optimFuncGen(.5,.5,1.0)
-optimize(.5,.5,.2,1.0)
+
 
 # now we run the process
-#while doneCnt < procCnt
-#    
-#    for c in keys(coreDict)
-#        # if the core contains nothing, send it an optimization procedure
-#        if isnothing(coreDict[c]) && length(tuples) > 0
-#            currTup=popfirst!(tuples)
-#            println("Sending tuple "*string(currTup)*" to core "*string(c))
-#            println(length(tuples))
-#            coreDict[c]=@spawnat c optimize(currTup[1],currTup[2],currTup[3],1.0)
-#        elseif isReady(coreDict[c])
-#            result=fetch(coreDict[c])
-#            global doneCnt
-#            doneCnt=doneCnt+1
-#            coreDict[c]=nothing
-#            df=DataFrame(insur=result[2],
-#                        prod=result[3],
-#                        runK=result[1][:runK],
-#                        objP=result[4]
-#                        )
-#            println("Writing File")
-#            CSV.write("../data/optimization.csv", df,header = false,append=true)
-#        end
-#    end
-#end
+while doneCnt < procCnt
+    for c in keys(coreDict)
+        # if the core contains nothing, send it an optimization procedure
+        if isnothing(coreDict[c]) && length(tuples) > 0
+            currTup=popfirst!(tuples)
+            println("Sending tuple "*string(currTup)*" to core "*string(c))
+            println(length(tuples))
+            coreDict[c]=@spawnat c runFamily(currTup[1],currTup[2],currTup[3])
+        elseif isReady(coreDict[c])
+            result=fetch(coreDict[c])
+            global doneCnt
+            doneCnt=doneCnt+1
+            coreDict[c]=nothing
+            df=DataFrame(
+                        insur=result[2],
+                        prod=result[3],
+                        objP=result[4]
+                        failProb=result[1])
+            println("Writing File")
+            CSV.write("../data/results.csv", df,header = false,append=true)
+        end
+    end
+end
