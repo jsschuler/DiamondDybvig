@@ -19,7 +19,7 @@ using CSV
 cores=Sys.CPU_THREADS
 
 #println(runFamily(.5,.5,.2))
- now, generate the possible values of insurance and production
+#now, generate the possible values of insurance and production
 tuples=[]
 
 for insur in 0.5:0.1:0.6
@@ -58,7 +58,7 @@ while doneCnt < procCnt
             df=DataFrame(
                         insur=result[2],
                         prod=result[3],
-                        objP=result[4]
+                        objP=result[4],
                         failProb=result[1])
             println("Writing File")
             CSV.write("../data/results.csv", df,header = false,append=true)
