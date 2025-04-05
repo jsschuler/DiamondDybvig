@@ -309,7 +309,7 @@ function dictPlug!(dict,key)
 end
 # now we need the main model function
 
-function runMain(mod::Model)
+function runMain(mod::SimModel)
     # exogenous withdrawals
     global agtCnt
     X=Binomial(agtCnt,mod.objP)
@@ -357,51 +357,46 @@ function runMain(mod::Model)
     return (countDict)
 end
 
-# now we need the optimization functions
+function utilFunc(mod::SimModel,dict::Dict)
+    retArray=[]
+    for ky in keys(dict)
+        for t in 1:dict[ky]
+            push!(retArray,util(mod,ky))
+        end
+    end
+    return mean(retArray)
+end
 
-
-
-
-function runInstances(params)
-    mod=modelGen(100,params[:runK],params[:objP],params[:insur],params[prod],params[riskAversion])
-    bargain(mod)
-
-    #println("Hellinger")
-    #println(1-sum(totArray))
-    HD=1-sum(totArray)
-    df=DataFrame(insur=insur,
-                 prod=prod,
-                 risk=riskAversion,
-                 K=params[:runK],
-                 objP=params[:objP],
-                 HD=HD)
-
-println("Distance")
-println(HD)
-println("Writing File")
-CSV.write("../data/runs.csv", df,header = false,append=true)
-    return HD
+function runMod(mod::Model)
+    global depth
+    global agtCnt
+    global tottResr
+    bestArray=[]
+    failArray=[]
+    for alloc in 0:10:totResr
+        deposit=alloc
+        endow=totResr-alloc
+        uArray=[]
+        failCount=0
+        for t in 1:depth
+            simMod=clone(mod,endow,deposit)
+            currRun=runMain(simMod)
+            # now did the bank fail in the current run?
+            if 0 in keys(currRun)
+                failCount=failCount+1
+            end
+            push!(uArray,utilFunc(simMod,currRun))
+        end
+        push!(bestArray,mean(uArray))
+        push!(failArray,failCount)
+    end
+    # now, find the max utility allocation
+    maxUtil=maximum(bestArray)
+    maxIndex=argmax(bestArray)
+    return(failArray[maxIndex]/depth))
 end
 
 
-# now we need a function that runs the optimization for certain values
-# this function will be sent to other cores
-
-function optimize(insur::Float64,prod::Float64,objP::Float64,riskAversion::Float64)
-    optFunc=optimFuncGen(insur,prod,riskAversion)
-    space = Dict(
-    :runK => HP.Choice(:runK,collect(1:1:agtCnt)),
-    #:objP => HP.QuantUniform(:objP,0.0,1.0,0.01)
-    :objP => HP.Choice(:objP,[.2])
-    )
-
-    best = fmin(
-        optFunc, # The function to be optimised.
-        space,         # The space over which the optimisation should take place.
-        25,          # The number of iterations to take.
-)
-    return (best,insur,prod,objP)
-end
 
 # now we need some functions to handle the multi-threading
 function isReady(arg::Future)
