@@ -7,7 +7,7 @@ using Distributed
 
 using CSV
 @everywhere agtCnt=100
-@everywhere depth=1000
+@everywhere depth=500
 @everywhere totResr::Int64=1000
 # now how many runs per model type?
 @everywhere runCnt=100
@@ -18,7 +18,7 @@ using CSV
 # detect availabile cores
 cores=Sys.CPU_THREADS
 
-println(runFamily(.5,.5,.2))
+#println(runFamily(.5,.5,.2))
 # now, generate the possible values of insurance and production
 
 #tuples=[]
