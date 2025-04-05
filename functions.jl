@@ -30,13 +30,12 @@ end
 
 # now a function to generate a model
 function modelGen(endow::Int64,
-                 runK::Int64,
                  objP::Float64,
                  insur::Float64,
                  prod::Float64,
                  riskAver::Float64)
     global agtCnt
-    mod=Model(Agent[],Agent[],endow,0,objP,insur,prod,riskAver)
+    mod=Model(Agent[],Agent[],objP,insur,prod,riskAver)
     for t in 1:agtCnt
         agtGen(mod)
     end
@@ -133,7 +132,7 @@ function roundSimul(mod::SimModel,decision::Bool)
         for future in futureCount
             #println("Hello")
             #println(length(mod.bankingList))
-            simMod=clone(mod)
+            simMod=copy(mod)
             #println(length(simMod.bankingList))
             while future > 0
                 future=future-1
@@ -231,13 +230,12 @@ end
 
 # we also need a function to copy a model
 
-function copy(mod::Model)
-    return Model(deepcopy(mod.nonBankingList),
+function copy(mod::SimModel)
+    return SimModel(deepcopy(mod.nonBankingList),
                     deepcopy(mod.bankingList),
                     mod.endow,
                     mod.deposit,
                     mod.objP,
-                    mod.runK,
                     mod.insur,
                     mod.prod,
                     mod.riskAversion,
@@ -393,14 +391,14 @@ function runMod(mod::Model)
     # now, find the max utility allocation
     maxUtil=maximum(bestArray)
     maxIndex=argmax(bestArray)
-    return(failArray[maxIndex]/depth))
+    return(failArray[maxIndex]/depth)
 end
 
 function runFamily(insur::Float64,prod::Float64,objP::Float64)
     global agtCnt
     global depth
     global totResr
-    mod=modelGen(agtCnt,runK,objP,insur,prod,1.0)
+    mod=modelGen(agtCnt,objP,insur,prod,1.0)
     #println("Model")
     #println(mod)
     #println("Run")
