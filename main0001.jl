@@ -6,8 +6,8 @@ using Distributed
 @everywhere using JLD2
 
 using CSV
-@everywhere agtCnt=100
-@everywhere depth=500
+@everywhere agtCnt=20
+@everywhere depth=20
 @everywhere totResr::Int64=1000
 # now how many runs per model type?
 @everywhere runCnt=100
@@ -18,7 +18,15 @@ using CSV
 # detect availabile cores
 cores=Sys.CPU_THREADS
 
-#println(runFamily(.5,.5,.2))
+println(runFamily(.5,.5,.2))
+println(runFamily(.5,.5,.3))
+println(runFamily(.5,.5,.4))
+println(runFamily(.5,.5,.5))
+println(runFamily(.5,.5,.6))
+println(runFamily(.5,.5,.7))
+println(runFamily(.5,.5,.8))
+println(runFamily(.5,.5,.9))
+println(runFamily(.5,.5,1.0))
 #now, generate the possible values of insurance and production
 tuples=[]
 
@@ -42,26 +50,26 @@ end
 
 
 # now we run the process
-while doneCnt < procCnt
-    for c in keys(coreDict)
-        # if the core contains nothing, send it an optimization procedure
-        if isnothing(coreDict[c]) && length(tuples) > 0
-            currTup=popfirst!(tuples)
-            println("Sending tuple "*string(currTup)*" to core "*string(c))
-            println(length(tuples))
-            coreDict[c]=@spawnat c runFamily(currTup[1],currTup[2],currTup[3])
-        elseif isReady(coreDict[c])
-            result=fetch(coreDict[c])
-            global doneCnt
-            doneCnt=doneCnt+1
-            coreDict[c]=nothing
-            df=DataFrame(
-                        insur=result[2],
-                        prod=result[3],
-                        objP=result[4],
-                        failProb=result[1])
-            println("Writing File")
-            CSV.write("../data/results.csv", df,header = false,append=true)
-        end
-    end
-end
+#while doneCnt < procCnt
+#    for c in keys(coreDict)
+#        # if the core contains nothing, send it an optimization procedure
+#        if isnothing(coreDict[c]) && length(tuples) > 0
+#            currTup=popfirst!(tuples)
+#            println("Sending tuple "*string(currTup)*" to core "*string(c))
+#            println(length(tuples))
+#            coreDict[c]=@spawnat c runFamily(currTup[1],currTup[2],currTup[3])
+#        elseif isReady(coreDict[c])
+#            result=fetch(coreDict[c])
+#            global doneCnt
+#            doneCnt=doneCnt+1
+#            coreDict[c]=nothing
+#            df=DataFrame(
+#                        insur=result[2],
+#                        prod=result[3],
+#                        objP=result[4],
+#                        failProb=result[1])
+#            println("Writing File")
+#            CSV.write("../data/results.csv", df,header = false,append=true)
+#        end
+#    end
+#end

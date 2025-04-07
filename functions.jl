@@ -319,7 +319,7 @@ function runMain(mod::SimModel)
     # now each agent decides whether or not to withdraw
     # we need a dictionary to keep track of pay outs
     countDict=Dict()
-    
+    runCond::Bool=false
     for j in 1:length(wOrder)
        # println(j) 
         # is the agent withdrawing 
@@ -337,6 +337,7 @@ function runMain(mod::SimModel)
             end
         end
         if mod.theBank.vault <= 0
+            runCond=true
             break
         end
     end
@@ -352,7 +353,7 @@ function runMain(mod::SimModel)
         end
     end
     
-    return (countDict)
+    return (runCond,countDict)
 end
 
 function utilFunc(mod::SimModel,dict::Dict)
@@ -380,10 +381,10 @@ function runMod(mod::Model)
             simMod=clone(mod,endow,deposit)
             currRun=runMain(simMod)
             # now did the bank fail in the current run?
-            if 0 in keys(currRun)
+            if currRun[1]
                 failCount=failCount+1
             end
-            push!(uArray,utilFunc(simMod,currRun))
+            push!(uArray,utilFunc(simMod,currRun[2]))
         end
         push!(bestArray,mean(uArray))
         push!(failArray,failCount)
