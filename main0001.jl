@@ -6,8 +6,8 @@ using Distributed
 @everywhere using JLD2
 
 using CSV
-@everywhere agtCnt=20
-@everywhere depth=20
+@everywhere agtCnt=50
+@everywhere depth=100
 @everywhere totResr::Int64=1000
 # now how many runs per model type?
 @everywhere runCnt=100
@@ -18,15 +18,23 @@ using CSV
 # detect availabile cores
 cores=Sys.CPU_THREADS
 
+#println(runFamily(.5,.5,.2))
+#println(runFamily(.5,.5,.3))
+#println(runFamily(.5,.5,.4))
+#println(runFamily(.5,.5,.5))
+#println(runFamily(.5,.5,.6))
+#println(runFamily(.5,.5,.7))
+#println(runFamily(.5,.5,.8))
+#println(runFamily(.5,.5,.9))
+#println(runFamily(.5,.5,1.0))
 println(runFamily(.5,.5,.2))
-println(runFamily(.5,.5,.3))
-println(runFamily(.5,.5,.4))
-println(runFamily(.5,.5,.5))
-println(runFamily(.5,.5,.6))
-println(runFamily(.5,.5,.7))
-println(runFamily(.5,.5,.8))
-println(runFamily(.5,.5,.9))
-println(runFamily(.5,.5,1.0))
+println(runFamily(.6,.5,.2))
+println(runFamily(.7,.5,.2))
+println(runFamily(.8,.5,.2))
+println(runFamily(.9,.5,.2))
+println(runFamily(1.0,.5,.2))
+println(runFamily(1.1,.5,.2))
+println(runFamily(1.2,.5,.2))
 #now, generate the possible values of insurance and production
 tuples=[]
 
