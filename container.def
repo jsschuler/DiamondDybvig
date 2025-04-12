@@ -23,6 +23,13 @@ From: ubuntu:20.04
         libbz2-dev \
         liblzma-dev \
         libpcre2-dev
+        libfreetype6-dev \ 
+        libpng-dev \
+        libtiff5-dev \
+        libjpeg-dev \
+        libharfbuzz-dev \
+        libfribidi-dev
+
 
     echo "Installing R 4.5.0..."
     cd /opt && \
@@ -37,7 +44,7 @@ From: ubuntu:20.04
     curl -L -o julia.tar.gz https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.4-linux-x86_64.tar.gz && \
     tar -xzf julia.tar.gz && \
     ln -s /opt/julia-1.11.4/bin/julia /usr/local/bin/julia
-    cd ~
+    cd /opt
     git clone https://github.com/jsschuler/DiamondDybvig 
     julia -e 'using Pkg; Pkg.add(["Folds","Distributions","Random","Distributed","CSV","DataFrames","Graphs","StatsBase","JLD2","Dates"]); Pkg.precompile()'
     Rscript -e "install.packages(c('tidyverse', 'data.table', 'Rcpp','ggplot2'), repos='https://cloud.r-project.org')"
@@ -55,5 +62,6 @@ From: ubuntu:20.04
     Julia_Version 1.11.4
 
 %runscript
-    echo "Available: R 4.5.0 and Julia 1.11.4"
-    exec bash
+    cd ~/opt/DiamondDybvig/
+    julia -p `nproc` main0001.jl
+    Rscript analysis.R
