@@ -406,7 +406,17 @@ function runFamily(insur::Float64,prod::Float64,objP::Float64)
     #println(runMain(mod))
     #println("Utility")
     #println(runMod(mod))
-    return (runMod(mod),insur,prod,objP)
+    # write out data
+    result=runMod(mod)
+    df=DataFrame(
+        insur=insur,
+        prod=prod,
+        objP=result[4],
+        failProb=result)
+        CSV.write("~/results.csv", df,header = false,append=true)
+
+
+    return (result,insur,prod,objP)
 end
 
 # now we need some functions to handle the multi-threading

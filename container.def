@@ -30,7 +30,8 @@ From: ubuntu:20.04
     tar -xzf R-4.5.0.tar.gz && cd R-4.5.0 && \
     ./configure --prefix=/opt/R-4.5.0 --enable-R-shlib --with-blas --with-lapack --without-x && \
     make -j$(nproc) && make install
-    ln -s /opt/R-4.5.0 /usr/local/bin/R
+    ln -s /opt/R-4.5.0/bin/R /usr/local/bin/R
+    ln -s /opt/R-4.5.0/bin/Rscript /usr/local/bin/Rscript
     echo "Installing Julia 1.11.4..."
     cd /opt && \
     curl -L -o julia.tar.gz https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.4-linux-x86_64.tar.gz && \
@@ -49,7 +50,7 @@ From: ubuntu:20.04
     export JULIA_DEPOT_PATH=/opt/.julia
 
 %labels
-    Author John Schuler
+    Author John S. Schuler
     R_Version 4.5.0
     Julia_Version 1.11.4
 

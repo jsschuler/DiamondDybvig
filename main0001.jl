@@ -13,52 +13,13 @@ using CSV
 @everywhere runCnt=100
 @everywhere include("objects.jl")
 @everywhere include("functions.jl")
-
+# now set a seed for the main process
+Random.seed!(56888923)
 
 # detect availabile cores
 cores=Sys.CPU_THREADS
 
-#println(runFamily(.5,.5,.2))
-#println(runFamily(.5,.5,.3))
-#println(runFamily(.5,.5,.4))
-#println(runFamily(.5,.5,.5))
-#println(runFamily(.5,.5,.6))
-#println(runFamily(.5,.5,.7))
-#println(runFamily(.5,.5,.8))
-#println(runFamily(.5,.5,.9))
-#println(runFamily(.5,.5,1.0))
-println(runFamily(.5,.5,.05))
-println(runFamily(.6,.5,.05))
-println(runFamily(.7,.5,.05))
-println(runFamily(.8,.5,.05))
-println(runFamily(.9,.5,.05))
-println(runFamily(1.0,.5,.05))
-println(runFamily(1.1,.5,.05))
-println(runFamily(1.2,.5,.05))
-println(runFamily(1.3,.5,.05))
-println(runFamily(1.4,.5,.05))
-println(runFamily(1.5,.5,.05))
-println(runFamily(1.6,.5,.05))
-println(runFamily(1.7,.5,.05))
-println(runFamily(1.8,.5,.05))
-println(runFamily(1.9,.5,.05))
-println(runFamily(2.0,.5,.05))
-println(runFamily(.5,.5,.1))
-println(runFamily(.6,.5,.1))
-println(runFamily(.7,.5,.1))
-println(runFamily(.8,.5,.1))
-println(runFamily(.9,.5,.1))
-println(runFamily(1.0,.5,.1))
-println(runFamily(1.1,.5,.1))
-println(runFamily(1.2,.5,.1))
-println(runFamily(1.3,.5,.1))
-println(runFamily(1.4,.5,.1))
-println(runFamily(1.5,.5,.1))
-println(runFamily(1.6,.5,.1))
-println(runFamily(1.7,.5,.1))
-println(runFamily(1.8,.5,.1))
-println(runFamily(1.9,.5,.1))
-println(runFamily(2.0,.5,.1))
+
 
 #now, generate the possible values of insurance and production
 tuples=[]
@@ -70,6 +31,10 @@ for insur in 0.5:0.1:0.6
         end
     end
 end
+# generate a seed for each tuple
+X=DiscreteUniform(1,1000000000)
+allSeeds=sample(X,length(tuples))
+
 
 # count completed processes
 procCnt=length(tuples)
@@ -83,26 +48,22 @@ end
 
 
 # now we run the process
-#while doneCnt < procCnt
-#    for c in keys(coreDict)
-#        # if the core contains nothing, send it an optimization procedure
-#        if isnothing(coreDict[c]) && length(tuples) > 0
-#            currTup=popfirst!(tuples)
-#            println("Sending tuple "*string(currTup)*" to core "*string(c))
-#            println(length(tuples))
-#            coreDict[c]=@spawnat c runFamily(currTup[1],currTup[2],currTup[3])
-#        elseif isReady(coreDict[c])
-#            result=fetch(coreDict[c])
-#            global doneCnt
-#            doneCnt=doneCnt+1
-#            coreDict[c]=nothing
-#            df=DataFrame(
-#                        insur=result[2],
-#                        prod=result[3],
-#                        objP=result[4],
-#                        failProb=result[1])
-#            println("Writing File")
-#            CSV.write("../data/results.csv", df,header = false,append=true)
-#        end
-#    end
-#end
+while doneCnt < procCnt
+    for c in keys(coreDict)
+        # if the core contains nothing, send it an optimization procedure
+        if isnothing(coreDict[c]) && length(tuples) > 0
+            currTup=popfirst!(tuples)
+            println("Sending tuple "*string(currTup)*" to core "*string(c))
+            println(length(tuples))
+            coreDict[c]=@spawnat c begin
+                Random.seed!(pop!(allSeeds))
+                runFamily(currTup[1],currTup[2],currTup[3])
+            end
+        elseif isReady(coreDict[c])
+            result=fetch(coreDict[c])
+            global doneCnt
+            doneCnt=doneCnt+1
+            coreDict[c]=nothing
+        end
+    end
+end
