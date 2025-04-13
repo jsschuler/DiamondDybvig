@@ -48,17 +48,14 @@ From: ubuntu:24.04
     tar -xzf julia.tar.gz && \
     ln -s /opt/julia-1.11.4/bin/julia /usr/local/bin/julia
     #mkdir /opt/.julia
-    mkdir /tmp/.julia
-    mkdir /tmp/.R
+    #mkdir /tmp/.julia
+    #mkdir /tmp/.R
     mkdir /opt/project
-    julia --project=/opt/project -e '
-        using Pkg
-        Pkg.instantiate()
-        Pkg.precompile()
-        '
     cd /opt
     git clone https://github.com/jsschuler/DiamondDybvig 
-    julia -e 'using Pkg; Pkg.add(["Folds","Distributions","Random","Distributed","CSV","DataFrames","Graphs","StatsBase","JLD2","Dates"]); Pkg.precompile()'
+    julia --project=/opt/project -e 'using Pkg; Pkg.add(["Folds","Distributions","Random","Distributed","CSV","DataFrames","Graphs","StatsBase","JLD2","Dates"]); Pkg.instantiate(); Pkg.precompile()'
+    chmod 555 /opt/
+    chmod -R 555 /opt/project
     #Rscript -e "install.packages(c('tidyverse', 'data.table', 'Rcpp','ggplot2'), repos='https://cloud.r-project.org')"
 
 
@@ -66,7 +63,7 @@ From: ubuntu:24.04
 %environment
     export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin:/opt/R-4.5.0/bin:/opt/julia-1.11.4/bin
     export R_HOME=/usr/local/lib/R
-    export JULIA_DEPOT_PATH=/tmp/.julia
+    export JULIA_DEPOT_PATH=~/.julia
 
 %labels
     Author John S. Schuler
@@ -74,6 +71,7 @@ From: ubuntu:24.04
     Julia_Version 1.11.4
 
 %runscript
+    mkdir ~/.julia/
     cd /opt/DiamondDybvig/
     julia --project=/opt/project -p `nproc` main0001.jl
-    Rscript analysis.R
+    #Rscript analysis.R
