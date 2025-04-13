@@ -1,11 +1,18 @@
 Bootstrap: docker
-From: ubuntu:20.04
+From: ubuntu:24.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
 
     echo "Updating base system..."
     apt-get update && apt-get install -y \
+        libfreetype-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libharfbuzz-dev \
+        libfribidi-dev \
+        libtiff-dev \
+        libncurses-dev \
         gfortran \
         git \
         build-essential \
@@ -18,18 +25,14 @@ From: ubuntu:20.04
         software-properties-common \
         ca-certificates \
         libreadline-dev \
-        zlib1g-dev \
-        libncurses5-dev \
-        libbz2-dev \
-        liblzma-dev \
-        libpcre2-dev
-        libfreetype6-dev \ 
+        libncurses-dev \
+        libfreetype-dev \
         libpng-dev \
-        libtiff5-dev \
         libjpeg-dev \
+        libtiff-dev \
         libharfbuzz-dev \
-        libfribidi-dev
-
+        libfribidi-dev \
+        libfontconfig1-dev
 
     echo "Installing R 4.5.0..."
     cd /opt && \
@@ -44,17 +47,26 @@ From: ubuntu:20.04
     curl -L -o julia.tar.gz https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.4-linux-x86_64.tar.gz && \
     tar -xzf julia.tar.gz && \
     ln -s /opt/julia-1.11.4/bin/julia /usr/local/bin/julia
+    #mkdir /opt/.julia
+    mkdir /tmp/.julia
+    mkdir /tmp/.R
+    mkdir /opt/project
+    julia --project=/opt/project -e '
+        using Pkg
+        Pkg.instantiate()
+        Pkg.precompile()
+        '
     cd /opt
     git clone https://github.com/jsschuler/DiamondDybvig 
     julia -e 'using Pkg; Pkg.add(["Folds","Distributions","Random","Distributed","CSV","DataFrames","Graphs","StatsBase","JLD2","Dates"]); Pkg.precompile()'
-    Rscript -e "install.packages(c('tidyverse', 'data.table', 'Rcpp','ggplot2'), repos='https://cloud.r-project.org')"
+    #Rscript -e "install.packages(c('tidyverse', 'data.table', 'Rcpp','ggplot2'), repos='https://cloud.r-project.org')"
 
 
 
 %environment
-    export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin:/opt/R-4.5.0/bin:/opt/julia-1.11.4/bin:/opt/R-4.5.0/bin
+    export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin:/opt/R-4.5.0/bin:/opt/julia-1.11.4/bin
     export R_HOME=/usr/local/lib/R
-    export JULIA_DEPOT_PATH=/opt/.julia
+    export JULIA_DEPOT_PATH=/tmp/.julia
 
 %labels
     Author John S. Schuler
@@ -62,6 +74,6 @@ From: ubuntu:20.04
     Julia_Version 1.11.4
 
 %runscript
-    cd ~/opt/DiamondDybvig/
-    julia -p `nproc` main0001.jl
+    cd /opt/DiamondDybvig/
+    julia --project=/opt/project -p `nproc` main0001.jl
     Rscript analysis.R
