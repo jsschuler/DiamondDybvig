@@ -411,7 +411,7 @@ function runFamily(insur::Float64,prod::Float64,objP::Float64)
     df=DataFrame(
         insur=insur,
         prod=prod,
-        objP=result[4],
+        objP=objP,
         failProb=result)
         CSV.write("~/results.csv", df,header = false,append=true)
 
