@@ -1,4 +1,12 @@
+using Pkg
+Pkg.activate("..")
+Pkg.instantiate()
 using Distributed
+@everywhere begin
+    import Pkg
+    Pkg.activate("..")  # Must be absolute
+    using Random  # Now it will be found
+end
 @everywhere using Distributions
 @everywhere using Random
 @everywhere using DataFrames
@@ -33,7 +41,7 @@ for insur in 0.5:0.1:0.6
 end
 # generate a seed for each tuple
 X=DiscreteUniform(1,1000000000)
-allSeeds=sample(X,length(tuples))
+allSeeds=rand(X,length(tuples))
 
 
 # count completed processes
