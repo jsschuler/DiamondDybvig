@@ -13,7 +13,7 @@ end
 @everywhere using TreeParzen
 @everywhere using JLD2
 
-using CSV
+@everywhere using CSV
 @everywhere agtCnt=50
 @everywhere depth=100
 @everywhere totResr::Int64=1000
