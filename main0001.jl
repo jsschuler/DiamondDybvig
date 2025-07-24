@@ -28,9 +28,9 @@ Random.seed!(56888923)
 cores=Sys.CPU_THREADS
 
 # now have the code fail immediately if the /scratch is not accessible
-if !isdir("/scratch/jschule4")
-    error("The /scratch/jschule4 directory is not accessible. Please check your environment setup.")
-end
+#if !isdir("/scratch/jschule4")
+#    error("The /scratch/jschule4 directory is not accessible. Please check your environment setup.")
+#end
 
 
 
