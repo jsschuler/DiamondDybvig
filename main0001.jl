@@ -27,6 +27,11 @@ Random.seed!(56888923)
 # detect availabile cores
 cores=Sys.CPU_THREADS
 
+# now have the code fail immediately if the /scratch is not accessible
+if !isdir("/scratch/jschule4")
+    error("The /scratch/jschule4 directory is not accessible. Please check your environment setup.")
+end
+
 
 
 #now, generate the possible values of insurance and production
