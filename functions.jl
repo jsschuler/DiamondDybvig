@@ -413,7 +413,7 @@ function runFamily(insur::Float64,prod::Float64,objP::Float64)
         prod=prod,
         objP=objP,
         failProb=result)
-        CSV.write("/home/jsschuler/results.csv", df,header = false,append=true)
+        CSV.write("../DDData/results.csv", df,header = false,append=true)
 
 
     return (result,insur,prod,objP)
